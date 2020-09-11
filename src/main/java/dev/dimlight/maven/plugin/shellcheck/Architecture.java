@@ -1,7 +1,13 @@
 package dev.dimlight.maven.plugin.shellcheck;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
+
 /**
  * Light-hearted os/arch detection, just enough to pick the shellcheck binary.
+ * Some arch-dependent paths and logic is also here.
  */
 public enum Architecture {
 
@@ -50,8 +56,7 @@ public enum Architecture {
      */
     public String binPath() {
         if (this.equals(unsupported)) {
-            throw new UnsupportedOperationException("No embedded shellcheck binaries for os.name ["
-                    + System.getProperty("os.name") + "] os.arch [" + System.getProperty("os.arch") + "]");
+            throwArchNotSupported("No embedded shellcheck binaries for this architecture.");
         }
 
         // Release archives have a different structure, don't mess with that, just reflect it.
@@ -64,10 +69,34 @@ public enum Architecture {
         return String.format("/shellcheck-bin/%s/shellcheck-v%s/shellcheck", this.name(), SHELLCHECK_VERSION);
     }
 
+    public void makeExecutable(Path path) throws IOException {
+        switch (this) {
+            case unsupported:
+                throwArchNotSupported("No support for this architecture.");
+            case Linux_x86_64:
+            case Linux_armv6hf:
+            case Linux_aarch64:
+            case macOS_x86_64:
+                // make the extracted file executable
+                final String perm755 = "rwxr-xr-x";
+                Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(perm755));
+            case Windows_x86:
+                // windows doesn't support posix permissions
+            default:
+                break;
+        }
+    }
+
     public String executableSuffix() {
         if (this.equals(Windows_x86)) {
             return ".exe";
         }
         return "";
+    }
+
+    private static void throwArchNotSupported(String msg) {
+        throw new UnsupportedOperationException(msg +
+                " os.name [" + System.getProperty("os.name") + "]" +
+                " os.arch [" + System.getProperty("os.arch") + "]");
     }
 }

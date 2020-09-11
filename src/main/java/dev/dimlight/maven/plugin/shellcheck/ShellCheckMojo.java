@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -156,12 +155,9 @@ public class ShellCheckMojo extends AbstractMojo {
         }
 
         // make the extracted file executable
-        final File binaryFile = binaryPath.toFile();
-        final String perm755 = "rwxr-xr-x";
-        log.debug("Setting [" + perm755 + "] to [" + binaryPath + "]");
-        Files.setPosixFilePermissions(binaryPath, PosixFilePermissions.fromString(perm755));
-        log.debug("Set [" + perm755 + "] to [" + binaryPath + "]");
+        arch.makeExecutable(binaryPath);
 
+        final File binaryFile = binaryPath.toFile();
         // check that we copied it and we can execute it.
         if (!binaryFile.exists()) {
             throw new MojoExecutionException("Could not find extracted file [" + binaryFile + "]");
