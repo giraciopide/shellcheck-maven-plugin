@@ -12,7 +12,7 @@
 
     <name>shellcheck-maven-plugin</name>
     <description>A wrapper to execute shellcheck as part of a maven build</description>
-    <url></url>
+
     <developers>
         <developer>
             <name>Marco Nicolini</name>

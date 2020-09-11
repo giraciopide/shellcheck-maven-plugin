@@ -54,7 +54,7 @@ public enum Architecture {
     /**
      * @return the path (within our jar) of the shellcheck binary, according to the architecture.
      */
-    public String binPath() {
+    public String embeddedBinPath() {
         if (this.equals(unsupported)) {
             throwArchNotSupported("No embedded shellcheck binaries for this architecture.");
         }

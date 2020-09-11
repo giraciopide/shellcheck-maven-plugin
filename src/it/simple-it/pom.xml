@@ -31,6 +31,8 @@
                             <sourceLocations>
                                 <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
                             </sourceLocations>
+                            <downloadBinaryAtRuntime>true</downloadBinaryAtRuntime>
+                            <useEmbeddedBinary>true</useEmbeddedBinary>
                         </configuration>
                     </execution>
                 </executions>
