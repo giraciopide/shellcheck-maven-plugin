@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
  */
 public class Shellcheck {
 
+    public static final String VERSION = "0.7.1";
+
     private Shellcheck() {
     }
 

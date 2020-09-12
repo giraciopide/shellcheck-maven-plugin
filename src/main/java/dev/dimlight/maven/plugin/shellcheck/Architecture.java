@@ -18,8 +18,6 @@ public enum Architecture {
     Windows_x86,        // windows 32 bit
     unsupported;
 
-    private static final String SHELLCHECK_VERSION = "0.7.1";
-
     public static Architecture detect() {
         final String osName = System.getProperty("os.name").toLowerCase();
         final String osArch = System.getProperty("os.arch");
@@ -63,10 +61,32 @@ public enum Architecture {
         // Ofc this is fragile, but it's also simple and as long as updating to a new shellcheck version
         // is a manual process, it's fine.
         if (this.equals(Architecture.Windows_x86)) {
-            return String.format("/shellcheck-bin/%s/shellcheck-v%s.exe", this.name(), SHELLCHECK_VERSION);
+            return String.format("/shellcheck-bin/%s/shellcheck-v%s.exe", this.name(), Shellcheck.VERSION);
         }
 
-        return String.format("/shellcheck-bin/%s/shellcheck-v%s/shellcheck", this.name(), SHELLCHECK_VERSION);
+        return String.format("/shellcheck-bin/%s/shellcheck-v%s/shellcheck", this.name(), Shellcheck.VERSION);
+    }
+
+    public boolean isUnixLike() {
+        return !this.equals(Windows_x86);
+    }
+
+    public String downloadUrl() {
+        switch (this) {
+            case Linux_x86_64:
+                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+            case Linux_armv6hf:
+                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+            case Linux_aarch64:
+                return String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+            case macOS_x86_64:
+                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.darwin.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+            case Windows_x86:
+                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.zip", Shellcheck.VERSION, Shellcheck.VERSION);
+            case unsupported:
+            default:
+                throw new UnsupportedOperationException(notSupportedMessage("No shellcheck binary for this architecture"));
+        }
     }
 
     public void makeExecutable(Path path) throws IOException {
@@ -94,9 +114,12 @@ public enum Architecture {
         return "";
     }
 
-    private static void throwArchNotSupported(String msg) {
-        throw new UnsupportedOperationException(msg +
-                " os.name [" + System.getProperty("os.name") + "]" +
-                " os.arch [" + System.getProperty("os.arch") + "]");
+    public static String notSupportedMessage(String prefix) {
+        return prefix + " os.name [" + System.getProperty("os.name") + "]" +
+                " os.arch [" + System.getProperty("os.arch") + "]";
+    }
+
+    public static void throwArchNotSupported(String msg) {
+        throw new UnsupportedOperationException(notSupportedMessage(msg));
     }
 }

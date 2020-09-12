@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.dimlight.it</groupId>
-    <artifactId>simple-it</artifactId>
+    <artifactId>download-binary-it</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <description>A simple IT verifying the basic use case.</description>
@@ -31,8 +31,7 @@
                             <sourceLocations>
                                 <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
                             </sourceLocations>
-                            <downloadBinaryAtRuntime>true</downloadBinaryAtRuntime>
-                            <useEmbeddedBinary>true</useEmbeddedBinary>
+                            <binaryResolutionMethod>download</binaryResolutionMethod>
                         </configuration>
                     </execution>
                 </executions>

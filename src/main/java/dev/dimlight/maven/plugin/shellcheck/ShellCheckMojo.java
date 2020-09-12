@@ -1,11 +1,15 @@
 package dev.dimlight.maven.plugin.shellcheck;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,6 +36,18 @@ public class ShellCheckMojo extends AbstractMojo {
     private List<File> sourceLocations;
 
     /**
+     * The way the plugin should attempt binary resolution
+     */
+    @Parameter(required = true, readonly = true, defaultValue = "download")
+    private BinaryResolutionMethod binaryResolutionMethod;
+
+    /**
+     * The path
+     */
+    @Parameter(required = false, readonly = true)
+    private File externalBinaryPath;
+
+    /**
      * The expected extension to filter shell files (e.g. ".sh").
      */
     @Parameter(required = true, defaultValue = ".sh", readonly = true)
@@ -44,19 +61,38 @@ public class ShellCheckMojo extends AbstractMojo {
 
     @Parameter(required = true, defaultValue = "${project.basedir}")
     private File baseDir;
-    
+
+    //
+    // non externally configurable stuff
+    //
+
+    @Component
+    private MavenProject mavenProject;
+
+    @Component
+    private MavenSession mavenSession;
+
+    @Component
+    private BuildPluginManager pluginManager;
+
     @Override
     public void execute() throws MojoExecutionException {
 
         final Log log = getLog();
+        final PluginPaths pluginPaths = new PluginPaths(outputDirectory.toPath());
 
         try {
+
             final List<Path> scriptsToCheck = searchFilesToBeChecked();
 
-            final BinaryResolver binaryResolver = new BinaryResolver(outputDirectory.toPath(), log);
-            final Path binary = binaryResolver.extractEmbeddedShellcheckBinary();
+            final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
+                    outputDirectory.toPath(),
+                    Optional.ofNullable(externalBinaryPath).map(File::toPath),
+                    log);
 
-            final Shellcheck.Result result = Shellcheck.run(binary, binary.getParent(), scriptsToCheck);
+            final Path binary = binaryResolver.resolve(binaryResolutionMethod);
+
+            final Shellcheck.Result result = Shellcheck.run(binary, pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
 
             // print stdout and stderr to maven log.
             Files.readAllLines(result.stdout).forEach(log::warn);

@@ -4,11 +4,19 @@ A maven plugin to execute shellcheck in a maven build
 ## How it works
 The plugin searches for shell files in standard (and configurable) locations and invokes shellcheck on them.
 
-Since shellcheck is a non-java application, and external requirements for a maven plugin are a complete
-hassle, at plugin build time the shellcheck binaries for all architectures are downloaded and packed into the jar.
- 
-Then at plugin execution time, the correct binary is copied to `${project.buid.directory}/shellcheck/shellcheck`
-and then invoked.
+Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary
+this is controlled by the `binaryResolutionMethod` configuration:
+* `embedded` the plugin will use a shellcheck binary embedded in the plugin jar.
+    * useful if you're behind proxy and you want zero-hassles in configuring things
+    * you're bound to the embedded shellcheck version (currently 0.7.1)
+* `download` the binary will be downloaded at plugin execution time.
+    * lets you target a specific shellcheck version (not yet implemented)
+* `external` the path to a shellcheck binary should be provided.
+    * you have all control
+    * requiring external tools makes the build less self-contained
+
+For embedded and download resolution at plugin execution time, the binary for the current architecture
+is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and the invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
 shellcheck exit code).
@@ -33,6 +41,12 @@ shellcheck exit code).
                             <sourceLocations>
                                 <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
                             </sourceLocations>
+
+                            <!-- embedded, download or external --> 
+                            <binaryResolutionMethod>download</binaryResolutionMethod>
+                            
+                            <!-- If you have external as resolution method you need also to provide "externalBinaryPath") -->
+                            <!-- externalBinaryPath>/path/to/shellcheck/</externalBinaryPath -->
                         </configuration>
                     </execution>
                 </executions>
@@ -47,6 +61,4 @@ mvn clean install
 ```
 
 ## TODO
-* Allow use of an existing shellcheck binary (given its path)
-* Download shellcheck binaries at plugin-execution time instead of plugin-build time, and make shellcheck
-version configurable
+- release on maven central

@@ -1,28 +1,136 @@
 package dev.dimlight.maven.plugin.shellcheck;
 
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
+
+import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
- * Things that prepare the shellcheck binary to be invoked, by downloading it or extracting it from the jar,
- * when embedded.
+ * Groups differents ways of getting hold of the correct shellcheck binary.
  */
 public class BinaryResolver {
 
     private final Path mavenTargetDirectory;
     private final Log log;
+    private final MavenProject mavenProject;
+    private final MavenSession mavenSession;
+    private final BuildPluginManager pluginManager;
+    private final Optional<Path> externalBinaryPath;
+    private final Architecture arch;
+    private final PluginPaths pluginPaths;
 
-    public BinaryResolver(Path mavenTargetDirectory, Log log) {
+    /**
+     * @param mavenProject         maven component for the delegated plugin download
+     * @param mavenSession         maven component for the delegated plugin download
+     * @param pluginManager        maven component for the delegated plugin download
+     * @param mavenTargetDirectory the current projec toutput directory
+     * @param log                  a maven logger
+     */
+    public BinaryResolver(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager,
+                          Path mavenTargetDirectory,
+                          Optional<Path> externalBinaryPath, Log log) {
+        this.mavenProject = mavenProject;
+        this.mavenSession = mavenSession;
+        this.pluginManager = pluginManager;
         this.mavenTargetDirectory = mavenTargetDirectory;
+        this.externalBinaryPath = externalBinaryPath;
         this.log = log;
+        this.arch = Architecture.detect();
+        this.pluginPaths = new PluginPaths(mavenTargetDirectory);
+    }
+
+    /**
+     * Performs binary resolution.
+     *
+     * @param resolutionMethod the desiderd resolution method.
+     * @return a executable shellcheck binary path
+     * @throws MojoExecutionException if there are problems while resolving
+     * @throws IOException            in case some io operation fails (e.g download or permission change)
+     */
+    public Path resolve(BinaryResolutionMethod resolutionMethod) throws MojoExecutionException, IOException {
+        switch (resolutionMethod) {
+            case external:
+                return validateExternalBinary();
+            case download:
+                return downloadShellcheckBinary();
+            case embedded:
+                return extractEmbeddedShellcheckBinary();
+            default:
+                throw new IllegalStateException("Invalid resolution method: " + resolutionMethod);
+        }
+    }
+
+    private Path validateExternalBinary() throws MojoExecutionException {
+        return externalBinaryPath
+                .map(Path::toFile)
+                .filter(File::exists)
+                .filter(File::canRead)
+                .filter(file -> !arch.isUnixLike() || file.canExecute())
+                .map(File::toPath)
+                .orElseThrow(() -> new MojoExecutionException("The external shellcheck binary has not been provided or cannot be found or is not readable/ executable"));
+    }
+
+    /**
+     * Downloads shellcheck for the current architecture and returns the path of the downloaded binary.
+     * <p>
+     * The actual download is delegated to a maven plugin executed via mojo-executor.
+     * This is less clean than a proper implementation but it's also orders of magnitude simpler as it automatically
+     * deals with: caching, different compression formats and maven proxy settings.
+     *
+     * @return the path to the downloaded binary
+     * @throws MojoExecutionException if the delegated execution to the download maven plugin fails or if we can't find
+     *                                the file after the download
+     * @throws IOException            in case we fail to make the downloaded binary executable (unix only)
+     */
+    private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
+        final Architecture arch = Architecture.detect();
+        executeMojo(
+                plugin(
+                        groupId("com.googlecode.maven-download-plugin"),
+                        artifactId("download-maven-plugin"),
+                        version("1.6.0")
+                ),
+                goal("wget"),
+                configuration(
+                        element(name("uri"), arch.downloadUrl()), // url is an alias!
+                        element(name("unpack"), "true"),
+                        element(name("outputDirectory"), pluginPaths.getPluginOutputDirectory().toFile().getAbsolutePath())
+                ),
+                executionEnvironment(
+                        mavenProject,
+                        mavenSession,
+                        pluginManager
+                )
+        );
+
+        final Path expectedDownloadedBinary = pluginPaths.downloadedAndUnpackedBinPath(arch);
+        if (!expectedDownloadedBinary.toFile().exists()) {
+            throw new MojoExecutionException("Could not find extracted file [" + expectedDownloadedBinary + "]");
+        }
+
+        arch.makeExecutable(expectedDownloadedBinary);
+
+        return expectedDownloadedBinary;
     }
 
     /**
@@ -32,12 +140,11 @@ public class BinaryResolver {
      * @throws IOException            if something goes bad while extracting and copying to the project build directory.
      * @throws MojoExecutionException if the extracted file cannot be read or executed.
      */
-    public Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
-        final Architecture arch = Architecture.detect();
+    private Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
         log.debug("Detected arch is [" + arch + "]");
 
         final String binaryTargetName = "shellcheck" + arch.executableSuffix();
-        final Path binaryPath = Paths.get(mavenTargetDirectory.toFile().getAbsolutePath(), "shellcheck", binaryTargetName);
+        final Path binaryPath = pluginPaths.getPathInPluginOutputDirectory(binaryTargetName);
 
         final boolean created = binaryPath.toFile().mkdirs();
         log.debug("Path [" + binaryPath + "] was created? [" + created + "]");
