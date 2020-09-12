@@ -274,7 +274,16 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>first</id>
+                        <id>add-main-license-files</id>
+                        <goals>
+                            <goal>update-project-license</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-license-headers</id>
                         <goals>
                             <goal>update-file-header</goal>
                         </goals>
