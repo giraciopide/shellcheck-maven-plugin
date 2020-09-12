@@ -2,10 +2,11 @@
 A maven plugin to execute shellcheck in a maven build
 
 ## How it works
-The plugin searches for shell files in standard (and configurable) locations and invokes shellcheck on them.
+The plugin has a single `check` goal that searches for shell files in standard (and configurable) locations and invokes
+shellcheck on them.
 
-Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary
-this is controlled by the `binaryResolutionMethod` configuration:
+Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary.
+This is controlled by the `binaryResolutionMethod` plugin configuration property:
 * `embedded` the plugin will use a shellcheck binary embedded in the plugin jar.
     * useful if you're behind proxy and you want zero-hassles in configuring things
     * you're bound to the embedded shellcheck version (currently 0.7.1)
@@ -19,7 +20,7 @@ For embedded and download resolution at plugin execution time, the binary for th
 is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and the invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
-shellcheck exit code).
+shellcheck exit code) with the `failBuildIfWarnings` property.
 
 ## Usage
 ```
@@ -56,6 +57,7 @@ shellcheck exit code).
 ```
 
 ## How to build
+
 ```
 mvn clean install
 ```
