@@ -11,6 +11,10 @@
     <name>shellcheck-maven-plugin</name>
     <description>A wrapper to execute shellcheck as part of a maven build</description>
 
+    <inceptionYear>2020</inceptionYear>
+    <organization>
+        <name>Marco Nicolini</name>
+    </organization>
     <developers>
         <developer>
             <name>Marco Nicolini</name>
@@ -25,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.3.9</maven.version>
+        <maven.version>3.5.4</maven.version>
 
         <shellcheck.version>0.7.1</shellcheck.version>
         <shellcheck.bins.directory>${project.build.directory}/classes/shellcheck-bin</shellcheck.bins.directory>
@@ -253,6 +257,30 @@
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <configuration>
+                    <licenseName>gpl_v3</licenseName>
+                    <roots>
+                        <root>src/main/java</root>
+                        <root>src/test/java</root>
+                    </roots>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>first</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
