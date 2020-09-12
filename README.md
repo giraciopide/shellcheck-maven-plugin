@@ -58,9 +58,14 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
 
 ## How to build
 
+Requirements
+* jdk 8
+* maven 3.5.4 or later
+
 ```
 mvn clean install
 ```
 
 ## TODO
+- make the download url for the shellcheck binary configurable
 - release on maven central
