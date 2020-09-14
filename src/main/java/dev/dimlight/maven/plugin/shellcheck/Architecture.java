@@ -130,9 +130,7 @@ public enum Architecture {
     }
 
     /**
-     * The idiomatic suffix for
-     *
-     * @return
+     * @return the idiomatic suffix for executables dependending on os/arch, i.e. "" for nixes and ".exe" for win.
      */
     public String executableSuffix() {
         if (this.equals(Windows_x86)) {
