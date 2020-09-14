@@ -10,20 +10,27 @@ package dev.dimlight.maven.plugin.shellcheck;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utilities for paths related to the plugin.
@@ -53,18 +60,36 @@ public class PluginPaths {
         return Paths.get(pluginOutputDirectory.toFile().getAbsolutePath(), pathFragments);
     }
 
-    public Path downloadedAndUnpackedBinPath(Architecture arch) {
-        if (arch.equals(Architecture.unsupported)) {
-            Architecture.throwArchNotSupported("No embedded shellcheck binaries for this architecture.");
-        }
+    /**
+     * Walks the files in fromPath to find what is likely the shellcheck binary.
+     * This is done cause the windows released archive has a different structure (directory and binary-name wise).
+     * <p>
+     * No actual check inspecting the binary is done, the likely binary is "found" only by name.
+     *
+     * @param fromPath the root path from which to start the search.
+     * @return the path to the binary, if found
+     * @throws FileNotFoundException if the binary is not found
+     * @throws IOException           if the there is an IO problem while walking the filesystem
+     */
+    public Path guessUnpackedBinary(Path fromPath, Architecture arch) throws IOException {
+        try (final Stream<Path> paths = Files.walk(fromPath)) {
+            final List<File> canditates = paths
+                    .map(Path::toFile)
+                    .filter(File::isFile)
+                    .filter(file -> file.getName().equals("shellcheck" + arch.executableSuffix()))
+                    .collect(Collectors.toList());
 
-        // Release archives have a different structure, don't mess with that, just reflect it.
-        // Ofc this is fragile, but it's also simple and as long as updating to a new shellcheck version
-        // is a manual process, it's fine.
-        if (arch.equals(Architecture.Windows_x86)) {
-            getPathInPluginOutputDirectory(String.format("shellcheck-v%s.exe", Shellcheck.VERSION));
-        }
+            if (canditates.size() > 1) {
+                throw new FileNotFoundException("There are multiple binaries canditate in the unpacked shellcheck release: [" +
+                        canditates + "] at [" + fromPath + "]");
+            }
 
-        return getPathInPluginOutputDirectory(String.format("shellcheck-v%s/shellcheck", Shellcheck.VERSION));
+            if (canditates.isEmpty()) {
+                throw new FileNotFoundException("No binary canditates found in the unpacked shellcheck release at [" +
+                        fromPath + "]");
+            }
+
+            return canditates.iterator().next().toPath();
+        }
     }
 }

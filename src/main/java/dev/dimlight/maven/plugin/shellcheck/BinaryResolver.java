@@ -10,12 +10,12 @@ package dev.dimlight.maven.plugin.shellcheck;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -92,7 +92,7 @@ public class BinaryResolver {
     public Path resolve(BinaryResolutionMethod resolutionMethod) throws MojoExecutionException, IOException {
         switch (resolutionMethod) {
             case external:
-                return validateExternalBinary();
+                return validateBinaryPath(externalBinaryPath, BinaryResolutionMethod.external);
             case download:
                 return downloadShellcheckBinary();
             case embedded:
@@ -102,14 +102,18 @@ public class BinaryResolver {
         }
     }
 
-    private Path validateExternalBinary() throws MojoExecutionException {
-        return externalBinaryPath
+    private Path validateBinaryPath(Optional<Path> binaryPath, BinaryResolutionMethod binaryOrigin) throws MojoExecutionException {
+        return binaryPath
                 .map(Path::toFile)
                 .filter(File::exists)
                 .filter(File::canRead)
                 .filter(file -> !arch.isUnixLike() || file.canExecute())
                 .map(File::toPath)
-                .orElseThrow(() -> new MojoExecutionException("The external shellcheck binary has not been provided or cannot be found or is not readable/ executable"));
+                .orElseThrow(() -> new MojoExecutionException("The " + binaryOrigin.name() + " shellcheck binary has not been provided or cannot be found or is not readable/ executable"));
+    }
+
+    private Path validateBinaryPath(Path binaryPath, BinaryResolutionMethod binaryOrigin) throws MojoExecutionException {
+        return validateBinaryPath(Optional.ofNullable(binaryPath), binaryOrigin);
     }
 
     /**
@@ -126,6 +130,7 @@ public class BinaryResolver {
      */
     private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
         final Architecture arch = Architecture.detect();
+        final Path downloadAndUnpackPath = pluginPaths.getPluginOutputDirectory();
         executeMojo(
                 plugin(
                         groupId("com.googlecode.maven-download-plugin"),
@@ -136,7 +141,7 @@ public class BinaryResolver {
                 configuration(
                         element(name("uri"), arch.downloadUrl()), // url is an alias!
                         element(name("unpack"), "true"),
-                        element(name("outputDirectory"), pluginPaths.getPluginOutputDirectory().toFile().getAbsolutePath())
+                        element(name("outputDirectory"), downloadAndUnpackPath.toFile().getAbsolutePath())
                 ),
                 executionEnvironment(
                         mavenProject,
@@ -145,14 +150,10 @@ public class BinaryResolver {
                 )
         );
 
-        final Path expectedDownloadedBinary = pluginPaths.downloadedAndUnpackedBinPath(arch);
-        if (!expectedDownloadedBinary.toFile().exists()) {
-            throw new MojoExecutionException("Could not find extracted file [" + expectedDownloadedBinary + "]");
-        }
-
+        final Path expectedDownloadedBinary = pluginPaths.guessUnpackedBinary(downloadAndUnpackPath, arch);
         arch.makeExecutable(expectedDownloadedBinary);
 
-        return expectedDownloadedBinary;
+        return validateBinaryPath(expectedDownloadedBinary, BinaryResolutionMethod.download);
     }
 
     /**
@@ -184,16 +185,6 @@ public class BinaryResolver {
         // make the extracted file executable
         arch.makeExecutable(binaryPath);
 
-        final File binaryFile = binaryPath.toFile();
-        // check that we copied it and we can execute it.
-        if (!binaryFile.exists()) {
-            throw new MojoExecutionException("Could not find extracted file [" + binaryFile + "]");
-        }
-
-        if (!binaryFile.canExecute()) {
-            throw new MojoExecutionException("Extracted file [" + binaryFile + "] is not executable");
-        }
-
-        return binaryPath;
+        return validateBinaryPath(binaryPath, BinaryResolutionMethod.embedded);
     }
 }
