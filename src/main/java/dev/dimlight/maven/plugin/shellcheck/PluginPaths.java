@@ -69,6 +69,7 @@ public class PluginPaths {
      * No actual check inspecting the binary is done, the likely binary is "found" only by name.
      *
      * @param fromPath the root path from which to start the search.
+     * @param arch     the current detected architecture
      * @return the path to the binary, if found
      * @throws FileNotFoundException if the binary is not found
      * @throws IOException           if the there is an IO problem while walking the filesystem

@@ -55,12 +55,14 @@ public class BinaryResolver {
     private final PluginPaths pluginPaths;
     private final Optional<URL> releaseArchiveUrl;
 
-
     /**
-     * @param mavenProject  maven component for the delegated plugin download
-     * @param mavenSession  maven component for the delegated plugin download
-     * @param pluginManager maven component for the delegated plugin download
-     * @param log           a maven logger
+     * @param mavenProject         maven component for the delegated plugin download
+     * @param mavenSession         maven component for the delegated plugin download
+     * @param pluginManager        maven component for the delegated plugin download
+     * @param mavenTargetDirectory the path to the current project target directory
+     * @param externalBinaryPath   the path to the external binary
+     * @param releaseArchiveUrl    the url where to find the wanted release of shellcheck
+     * @param log                  a maven logger
      */
     public BinaryResolver(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager,
                           Path mavenTargetDirectory,
