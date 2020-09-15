@@ -8,22 +8,42 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
-    <name>shellcheck-maven-plugin</name>
-    <description>A wrapper to execute shellcheck as part of a maven build</description>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <url>https://github.com/marco-nicolini/shellcheck-maven-plugin</url>
+    <description>A maven plugin to execute shellcheck as part of a maven build</description>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License (GPL) version 3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Marco Nicolini</name>
+            <email>marco@dimlight.dev</email>
+            <url>https://github.com/marco-nicolini</url>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
 
     <inceptionYear>2020</inceptionYear>
     <organization>
         <name>Marco Nicolini</name>
     </organization>
-    <developers>
-        <developer>
-            <name>Marco Nicolini</name>
-        </developer>
-    </developers>
 
     <prerequisites>
         <maven>${maven.version}</maven>
     </prerequisites>
+
+    <scm>
+        <url>https://github.com/marco-nicolini/shellcheck-maven-plugin</url>
+        <connection>scm:git:https://github.com/marco-nicolini/shellcheck-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:marco-nicolini/shellcheck-maven-plugin.git</developerConnection>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
