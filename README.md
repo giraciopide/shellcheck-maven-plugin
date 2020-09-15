@@ -11,12 +11,12 @@ This is controlled by the `binaryResolutionMethod` plugin configuration property
     * useful if you're behind proxy and you want zero-hassles in configuring things
     * you're bound to the embedded shellcheck version (currently 0.7.1)
 * `download` the binary will be downloaded at plugin execution time.
-    * lets you target a specific shellcheck version (not yet implemented)
+    * lets you target a specific shellcheck version different from the embedded one
 * `external` the path to a shellcheck binary should be provided.
     * you have all control
     * requiring external tools makes the build less self-contained
 
-For embedded and download resolution at plugin execution time, the binary for the current architecture
+For embedded and download resolution at plugin execution time, the "resolved" binary
 is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and the invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
@@ -45,9 +45,16 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
 
                             <!-- embedded, download or external --> 
                             <binaryResolutionMethod>download</binaryResolutionMethod>
+
+                            <!-- if you have "download" as resolution method, you may also provide the url of the shellcheck
+                                  release archive (zip or tar.xz) for your (os/arch) to be used at plugin execution time.
+                                  If you don't provide it, the same url (for your detected os/arch) that was used to 
+                                  fetch the embedded binaries will be used instead, but at that point you may as well
+                                  use the embedded binaries -->
+                            <releaseArchiveUrl>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.x86_64.tar.xz</releaseArchiveUrl>
                             
-                            <!-- If you have external as resolution method you need also to provide "externalBinaryPath") -->
-                            <!-- externalBinaryPath>/path/to/shellcheck/</externalBinaryPath -->
+                            <!-- If you have "external" as resolution method you need also to provide "externalBinaryPath" -->
+                            <!-- externalBinaryPath>/path/to/shellcheck</externalBinaryPath -->
                         </configuration>
                     </execution>
                 </executions>
@@ -67,5 +74,5 @@ mvn clean install
 ```
 
 ## TODO
-- make the download url for the shellcheck binary configurable
+- make the download urls be a map with an entry for each arch
 - release on maven central

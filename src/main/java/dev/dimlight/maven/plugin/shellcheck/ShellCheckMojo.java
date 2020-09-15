@@ -35,6 +35,7 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,10 +65,19 @@ public class ShellCheckMojo extends AbstractMojo {
     private BinaryResolutionMethod binaryResolutionMethod;
 
     /**
-     * The path
+     * The path of the external binary, used only if binaryResolutionMethod is set to "external"
+     * @see BinaryResolutionMethod
      */
     @Parameter(required = false, readonly = true)
     private File externalBinaryPath;
+
+    /**
+     * The URL at which the release archive containing shellcheck will be downloaded,
+     * used only if binaryResolutionMethod is set to "download"
+     * @see BinaryResolutionMethod
+     */
+    @Parameter(required = false, readonly = true)
+    private URL releaseArchiveUrl;
 
     /**
      * The expected extension to filter shell files (e.g. ".sh").
@@ -110,6 +120,7 @@ public class ShellCheckMojo extends AbstractMojo {
             final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
                     outputDirectory.toPath(),
                     Optional.ofNullable(externalBinaryPath).map(File::toPath),
+                    Optional.ofNullable(releaseArchiveUrl),
                     log);
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);

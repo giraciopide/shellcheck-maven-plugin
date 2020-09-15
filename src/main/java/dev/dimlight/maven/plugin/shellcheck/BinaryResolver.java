@@ -31,21 +31,13 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
  * Groups differents ways of getting hold of the correct shellcheck binary.
@@ -60,21 +52,25 @@ public class BinaryResolver {
     private final Optional<Path> externalBinaryPath;
     private final Architecture arch;
     private final PluginPaths pluginPaths;
+    private final Optional<URL> releaseArchiveUrl;
+
 
     /**
-     * @param mavenProject         maven component for the delegated plugin download
-     * @param mavenSession         maven component for the delegated plugin download
-     * @param pluginManager        maven component for the delegated plugin download
-     * @param mavenTargetDirectory the current projec toutput directory
-     * @param log                  a maven logger
+     * @param mavenProject  maven component for the delegated plugin download
+     * @param mavenSession  maven component for the delegated plugin download
+     * @param pluginManager maven component for the delegated plugin download
+     * @param log           a maven logger
      */
     public BinaryResolver(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager,
                           Path mavenTargetDirectory,
-                          Optional<Path> externalBinaryPath, Log log) {
+                          Optional<Path> externalBinaryPath,
+                          Optional<URL> releaseArchiveUrl,
+                          Log log) {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
         this.mavenTargetDirectory = mavenTargetDirectory;
+        this.releaseArchiveUrl = releaseArchiveUrl;
         this.externalBinaryPath = externalBinaryPath;
         this.log = log;
         this.arch = Architecture.detect();
@@ -129,7 +125,10 @@ public class BinaryResolver {
      * @throws IOException            in case we fail to make the downloaded binary executable (unix only)
      */
     private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
-        final Architecture arch = Architecture.detect();
+        final String url = releaseArchiveUrl.orElse(arch.downloadUrl()).toExternalForm();
+
+        log.info("shellcheck release will be fetched at [" + url + "]");
+
         final Path downloadAndUnpackPath = pluginPaths.getPluginOutputDirectory();
         executeMojo(
                 plugin(
@@ -139,7 +138,7 @@ public class BinaryResolver {
                 ),
                 goal("wget"),
                 configuration(
-                        element(name("uri"), arch.downloadUrl()), // url is an alias!
+                        element(name("uri"), url), // url is an alias!
                         element(name("unpack"), "true"),
                         element(name("outputDirectory"), downloadAndUnpackPath.toFile().getAbsolutePath())
                 ),

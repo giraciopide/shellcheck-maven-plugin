@@ -23,6 +23,8 @@ package dev.dimlight.maven.plugin.shellcheck;
  */
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -93,21 +95,32 @@ public enum Architecture {
         return !this.equals(Windows_x86);
     }
 
-    public String downloadUrl() {
+    public URL downloadUrl() {
+        final String url;
         switch (this) {
             case Linux_x86_64:
-                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                break;
             case Linux_armv6hf:
-                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                break;
             case Linux_aarch64:
-                return String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                break;
             case macOS_x86_64:
-                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.darwin.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.darwin.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                break;
             case Windows_x86:
-                return String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.zip", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.zip", Shellcheck.VERSION, Shellcheck.VERSION);
+                break;
             case unsupported:
             default:
                 throw new UnsupportedOperationException(notSupportedMessage("No shellcheck binary for this architecture"));
+        }
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
