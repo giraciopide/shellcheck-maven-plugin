@@ -22,6 +22,7 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #L%
  */
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -162,6 +163,8 @@ public class BinaryResolver {
      * @throws IOException            if something goes bad while extracting and copying to the project build directory.
      * @throws MojoExecutionException if the extracted file cannot be read or executed.
      */
+    // a false positive, javac in java 11+ due to redundant null checks in try-with-resources synthetized finally
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
     private Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
         log.debug("Detected arch is [" + arch + "]");
 

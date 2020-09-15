@@ -22,6 +22,7 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #L%
  */
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -66,6 +67,7 @@ public class ShellCheckMojo extends AbstractMojo {
 
     /**
      * The path of the external binary, used only if binaryResolutionMethod is set to "external"
+     *
      * @see BinaryResolutionMethod
      */
     @Parameter(required = false, readonly = true)
@@ -74,6 +76,7 @@ public class ShellCheckMojo extends AbstractMojo {
     /**
      * The URL at which the release archive containing shellcheck will be downloaded,
      * used only if binaryResolutionMethod is set to "download"
+     *
      * @see BinaryResolutionMethod
      */
     @Parameter(required = false, readonly = true)
@@ -157,6 +160,8 @@ public class ShellCheckMojo extends AbstractMojo {
      * @return the list of files to be checked by shellcheck.
      * @throws IOException if something goes bad while walking the filesystem.
      */
+    // a false positive due to due to redundant null checks in try-with-resources synthetized finally
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     private List<Path> searchFilesToBeChecked() throws IOException {
         final List<Path> foundFiles = new ArrayList<>();
         for (File sourceLocation : sourceLocations()) {

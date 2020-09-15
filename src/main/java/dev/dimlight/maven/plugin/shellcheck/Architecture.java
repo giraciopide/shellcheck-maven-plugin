@@ -78,7 +78,7 @@ public enum Architecture {
      */
     public String embeddedBinPath() {
         if (this.equals(unsupported)) {
-            throwArchNotSupported("No embedded shellcheck binaries for this architecture.");
+            throw new UnsupportedOperationException(notSupportedMessage("No embedded shellcheck binaries for this architecture."));
         }
 
         // Release archives have a different structure, don't mess with that, just reflect it.
@@ -127,7 +127,8 @@ public enum Architecture {
     public void makeExecutable(Path path) throws IOException {
         switch (this) {
             case unsupported:
-                throwArchNotSupported("No support for this architecture.");
+                throw new UnsupportedOperationException(notSupportedMessage("No support for this architecture."));
+
             case Linux_x86_64:
             case Linux_armv6hf:
             case Linux_aarch64:
@@ -135,6 +136,8 @@ public enum Architecture {
                 // make the extracted file executable
                 final String perm755 = "rwxr-xr-x";
                 Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(perm755));
+                break;
+
             case Windows_x86:
                 // windows doesn't support posix permissions
             default:
@@ -155,9 +158,5 @@ public enum Architecture {
     public static String notSupportedMessage(String prefix) {
         return prefix + " os.name [" + System.getProperty("os.name") + "]" +
                 " os.arch [" + System.getProperty("os.arch") + "]";
-    }
-
-    public static void throwArchNotSupported(String msg) {
-        throw new UnsupportedOperationException(notSupportedMessage(msg));
     }
 }

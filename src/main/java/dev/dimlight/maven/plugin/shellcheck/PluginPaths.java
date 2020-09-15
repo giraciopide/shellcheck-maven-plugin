@@ -22,6 +22,8 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #L%
  */
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -71,7 +73,10 @@ public class PluginPaths {
      * @throws FileNotFoundException if the binary is not found
      * @throws IOException           if the there is an IO problem while walking the filesystem
      */
+    // a false positive due to due to redundant null checks in try-with-resources synthetized finally
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     public Path guessUnpackedBinary(Path fromPath, Architecture arch) throws IOException {
+
         try (final Stream<Path> paths = Files.walk(fromPath)) {
             final List<File> canditates = paths
                     .map(Path::toFile)
