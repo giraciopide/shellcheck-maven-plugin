@@ -36,9 +36,19 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
  * Groups differents ways of getting hold of the correct shellcheck binary.
@@ -53,7 +63,7 @@ public class BinaryResolver {
     private final Optional<Path> externalBinaryPath;
     private final Architecture arch;
     private final PluginPaths pluginPaths;
-    private final Optional<URL> releaseArchiveUrl;
+    private final Map<String, URL> releaseArchiveUrls;
 
     /**
      * @param mavenProject         maven component for the delegated plugin download
@@ -67,16 +77,17 @@ public class BinaryResolver {
     public BinaryResolver(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager,
                           Path mavenTargetDirectory,
                           Optional<Path> externalBinaryPath,
-                          Optional<URL> releaseArchiveUrl,
+                          Map<String, URL> releaseArchiveUrl,
                           Log log) {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
         this.mavenTargetDirectory = mavenTargetDirectory;
-        this.releaseArchiveUrl = releaseArchiveUrl;
+        this.releaseArchiveUrls = releaseArchiveUrl;
         this.externalBinaryPath = externalBinaryPath;
         this.log = log;
         this.arch = Architecture.detect();
+        log.info("os arch: [" + Architecture.osArchKey() + "]");
         this.pluginPaths = new PluginPaths(mavenTargetDirectory);
     }
 
@@ -128,7 +139,12 @@ public class BinaryResolver {
      * @throws IOException            in case we fail to make the downloaded binary executable (unix only)
      */
     private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
-        final String url = releaseArchiveUrl.orElse(arch.downloadUrl()).toExternalForm();
+        URL u = releaseArchiveUrls.get(Architecture.osArchKey());
+        if (u == null) {
+            log.warn("No shellcheck download url provided for current os.name-os.arch [" + Architecture.osArchKey() + "]");
+            u = arch.downloadUrl();
+        }
+        final String url = u.toExternalForm();
 
         log.info("shellcheck release will be fetched at [" + url + "]");
 

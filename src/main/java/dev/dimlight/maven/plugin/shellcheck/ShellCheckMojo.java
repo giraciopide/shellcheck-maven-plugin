@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,7 +81,7 @@ public class ShellCheckMojo extends AbstractMojo {
      * @see BinaryResolutionMethod
      */
     @Parameter(required = false, readonly = true)
-    private URL releaseArchiveUrl;
+    private Map<String, URL> releaseArchiveUrls;
 
     /**
      * The expected extension to filter shell files (e.g. ".sh").
@@ -123,7 +124,7 @@ public class ShellCheckMojo extends AbstractMojo {
             final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
                     outputDirectory.toPath(),
                     Optional.ofNullable(externalBinaryPath).map(File::toPath),
-                    Optional.ofNullable(releaseArchiveUrl),
+                    Optional.ofNullable(releaseArchiveUrls).orElse(Collections.emptyMap()),
                     log);
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);

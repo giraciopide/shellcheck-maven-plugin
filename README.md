@@ -17,7 +17,7 @@ This is controlled by the `binaryResolutionMethod` plugin configuration property
     * requiring external tools makes the build less self-contained
 
 For embedded and download resolution at plugin execution time, the "resolved" binary
-is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and the invoked.
+is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and then invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
 shellcheck exit code) with the `failBuildIfWarnings` property.
@@ -38,22 +38,35 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <!-- set to true if you want the build to fail when you have warnings -->
                             <failBuildIfWarnings>false</failBuildIfWarnings>
+
+                            <!-- set the locations where to look for *sh files, or set individual sh file paths as well
+                                 by default looks in ${project.basedir}/src/main/sh -->
                             <sourceLocations>
                                 <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
                             </sourceLocations>
 
-                            <!-- embedded, download or external --> 
+                            <!-- chose the binary resolution method embedded, download or external --> 
                             <binaryResolutionMethod>download</binaryResolutionMethod>
 
-                            <!-- if you have "download" as resolution method, you may also provide the url of the shellcheck
-                                  release archive (zip or tar.xz) for your (os/arch) to be used at plugin execution time.
-                                  If you don't provide it, the same url (for your detected os/arch) that was used to 
-                                  fetch the embedded binaries will be used instead, but at that point you may as well
-                                  use the embedded binaries -->
-                            <releaseArchiveUrl>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.x86_64.tar.xz</releaseArchiveUrl>
-                            
-                            <!-- If you have "external" as resolution method you need also to provide "externalBinaryPath" -->
+                            <!-- if you have chosen "download" as resolution method, you may also provide the url of the shellcheck
+                                  release archive (zip or tar.xz) (for all os/arch you're building on) to be used at plugin execution time.
+                                  The urls are specified as a configuration map, where the exact key for an architecture 
+                                  (e.g. "Mac_OS_X-x86_64" in the example below) must match what your jvm returns for the 
+                                  following expression:
+                                  (System.getProperty("os.name") + "-" + System.getProperty("os.arch")).replace(" ", "_")
+                                  For your convenience this value is also printed by the plugin almost at start:
+                                  e.g. "[INFO] os arch: [Mac_OS_X-x86_64]"
+                                  If you don't provide this configuration map at all (or if you don't provide an exact match
+                                  to osname-arch as described above) the same url that was used to 
+                                  fetch the embedded binaries will be used instead. However, at that point...
+                                  you may as well use the embedded binaries -->
+                            <releaseArchiveUrls>
+                                <Mac_OS_X-x86_64>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.darwin.x86_64.tar.xz</Mac_OS_X-x86_64>
+                            </releaseArchiveUrls>                            
+
+                            <!-- If you chose "external" as resolution method you need also to provide the "externalBinaryPath" -->
                             <!-- externalBinaryPath>/path/to/shellcheck</externalBinaryPath -->
                         </configuration>
                     </execution>
@@ -66,16 +79,15 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
 ## How to build
 
 Requirements
-* jdk 8
-* maven 3.5.4 or later
+* jdk >= 8
+* maven >= 3.5.4
 
 ```
 mvn clean install
 ```
 
 ## TODO
-- make the download urls be a map with an entry for each arch
-- release on maven central
+- release on maven central (ongoing!)
 
 ## Copyright notice
 

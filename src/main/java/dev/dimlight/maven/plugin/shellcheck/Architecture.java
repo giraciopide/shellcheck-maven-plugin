@@ -42,6 +42,10 @@ public enum Architecture {
     Windows_x86,        // windows 32 bit
     unsupported;
 
+    public static String osArchKey() {
+        return (System.getProperty("os.name") + "-" + System.getProperty("os.arch")).replace(" ", "_");
+    }
+
     public static Architecture detect() {
         final String osName = System.getProperty("os.name").toLowerCase();
         final String osArch = System.getProperty("os.arch");
