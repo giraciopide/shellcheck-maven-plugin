@@ -76,3 +76,16 @@ mvn clean install
 ## TODO
 - make the download urls be a map with an entry for each arch
 - release on maven central
+
+## Copyright notice
+
+shellcheck-maven-plugin is licensed under the GNU General Public License, v3. A copy of this license 
+is included in the file LICENSE.txt.
+
+copyright 2020, Marco Nicolini.
+
+##  Shellcheck copyright notice
+
+ShellCheck is licensed under the GNU General Public License.
+
+Copyright 2012-2019, Vidar 'koala_man' Holen and contributors.
