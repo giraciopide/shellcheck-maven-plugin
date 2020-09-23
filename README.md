@@ -1,4 +1,6 @@
 # shellcheck-maven-plugin
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin)
+
 A maven plugin to execute shellcheck in a maven build
 
 ## How it works
@@ -23,6 +25,9 @@ Optionally the plugin can be configured to fail the build if warnings are found 
 shellcheck exit code) with the `failBuildIfWarnings` property.
 
 ## Usage
+
+The plugin is released on maven central, so you can use it in your build like this:
+
 ```
     <build>
         <plugins>
@@ -82,9 +87,8 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
 
 * jdk >= 8
 * maven >= 3.5.4
-* working internet connection needed to retrieve the shellcheck (configure your proxy in your maven settings.xml if
+* working internet connection needed to retrieve the shellcheck binaries (configure your proxy in your maven settings.xml if
 you're behind one)
-binaries
 
 ```
 mvn clean install
