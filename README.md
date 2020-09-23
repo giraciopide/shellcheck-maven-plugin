@@ -2,7 +2,7 @@
 A maven plugin to execute shellcheck in a maven build
 
 ## How it works
-The plugin has a single `check` goal that searches for shell files in standard (and configurable) locations and invokes
+The plugin has a single `check` goal that searches for shell files in standard (configurable) locations and invokes
 shellcheck on them.
 
 Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary.
