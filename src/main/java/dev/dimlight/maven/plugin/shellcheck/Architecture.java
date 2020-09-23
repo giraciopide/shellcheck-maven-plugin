@@ -30,8 +30,8 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 
 /**
- * Light-hearted os/arch detection, just enough to pick the shellcheck binary.
- * Some arch-dependent paths and logic is also here.
+ * Light-hearted os/arch detection, just enough to pick up the shellcheck binary.
+ * Some arch-dependent logic is also here.
  */
 public enum Architecture {
 
@@ -99,6 +99,9 @@ public enum Architecture {
         return !this.equals(Windows_x86);
     }
 
+    /**
+     * @return the default download url for the detected architecture.
+     */
     public URL downloadUrl() {
         final String url;
         switch (this) {

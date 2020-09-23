@@ -39,11 +39,9 @@ import java.util.stream.Stream;
  */
 public class PluginPaths {
 
-    private final Path mavenTargetDirectory;
     private final Path pluginOutputDirectory;
 
     public PluginPaths(Path mavenTargetDirectory) {
-        this.mavenTargetDirectory = mavenTargetDirectory;
         this.pluginOutputDirectory = Paths.get(mavenTargetDirectory.toFile().getAbsolutePath(), "shellcheck-plugin");
     }
 
@@ -86,12 +84,12 @@ public class PluginPaths {
                     .collect(Collectors.toList());
 
             if (canditates.size() > 1) {
-                throw new FileNotFoundException("There are multiple binaries canditate in the unpacked shellcheck release: [" +
+                throw new FileNotFoundException("There are multiple binaries candidate in the unpacked shellcheck release: [" +
                         canditates + "] at [" + fromPath + "]");
             }
 
             if (canditates.isEmpty()) {
-                throw new FileNotFoundException("No binary canditates found in the unpacked shellcheck release at [" +
+                throw new FileNotFoundException("No binary candidates found in the unpacked shellcheck release at [" +
                         fromPath + "]");
             }
 

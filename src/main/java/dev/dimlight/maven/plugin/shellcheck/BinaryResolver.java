@@ -55,7 +55,6 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
  */
 public class BinaryResolver {
 
-    private final Path mavenTargetDirectory;
     private final Log log;
     private final MavenProject mavenProject;
     private final MavenSession mavenSession;
@@ -82,7 +81,6 @@ public class BinaryResolver {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
-        this.mavenTargetDirectory = mavenTargetDirectory;
         this.releaseArchiveUrls = releaseArchiveUrl;
         this.externalBinaryPath = externalBinaryPath;
         this.log = log;
