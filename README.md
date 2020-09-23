@@ -2,8 +2,8 @@
 A maven plugin to execute shellcheck in a maven build
 
 ## How it works
-The plugin has a single `check` goal that searches for shell files in standard (configurable) locations and invokes
-shellcheck on them.
+The plugin has a single `check` goal that searches for shell files in standard (/src/main/sh, configurable) locations 
+and invokes shellcheck on them.
 
 Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary.
 This is controlled by the `binaryResolutionMethod` plugin configuration property:
@@ -12,11 +12,11 @@ This is controlled by the `binaryResolutionMethod` plugin configuration property
     * you're bound to the embedded shellcheck version (currently 0.7.1)
 * `download` the binary will be downloaded at plugin execution time.
     * lets you target a specific shellcheck version different from the embedded one
-* `external` the path to a shellcheck binary should be provided.
+* `external` the path to a shellcheck binary needs to be provided.
     * you have all control
-    * requiring external tools makes the build less self-contained
+    * requiring external tools to be installed makes the build less self-contained
 
-For embedded and download resolution at plugin execution time, the "resolved" binary
+For "embedded" and "download" resolutions, at plugin execution time, the resolved binary
 is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and then invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
@@ -60,7 +60,7 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
                                   e.g. "[INFO] os arch: [Mac_OS_X-x86_64]"
                                   If you don't provide this configuration map at all (or if you don't provide an exact match
                                   to osname-arch as described above) the same url that was used to 
-                                  fetch the embedded binaries will be used instead. However, at that point...
+                                  fetch the embedded binaries will be used instead. However, at that point
                                   you may as well use the embedded binaries -->
                             <releaseArchiveUrls>
                                 <Mac_OS_X-x86_64>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.darwin.x86_64.tar.xz</Mac_OS_X-x86_64>
@@ -78,16 +78,17 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
 
 ## How to build
 
-Requirements
+### Requirements
+
 * jdk >= 8
 * maven >= 3.5.4
+* working internet connection needed to retrieve the shellcheck (configure your proxy in your maven settings.xml if
+you're behind one)
+binaries
 
 ```
 mvn clean install
 ```
-
-## TODO
-- release on maven central (ongoing!)
 
 ## Copyright notice
 
