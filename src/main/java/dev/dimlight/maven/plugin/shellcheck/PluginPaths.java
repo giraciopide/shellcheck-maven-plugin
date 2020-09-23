@@ -82,7 +82,7 @@ public class PluginPaths {
             final List<File> canditates = paths
                     .map(Path::toFile)
                     .filter(File::isFile)
-                    .filter(file -> file.getName().equals("shellcheck" + arch.executableSuffix()))
+                    .filter(file -> file.getName().equals("shellcheck" + arch.idiomaticExecutableSuffix()))
                     .collect(Collectors.toList());
 
             if (canditates.size() > 1) {

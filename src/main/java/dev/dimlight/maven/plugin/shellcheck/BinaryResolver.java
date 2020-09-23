@@ -186,7 +186,7 @@ public class BinaryResolver {
     private Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
         log.debug("Detected arch is [" + arch + "]");
 
-        final String binaryTargetName = "shellcheck" + arch.executableSuffix();
+        final String binaryTargetName = "shellcheck" + arch.idiomaticExecutableSuffix();
         final Path binaryPath = pluginPaths.getPathInPluginOutputDirectory(binaryTargetName);
 
         final boolean created = binaryPath.toFile().mkdirs();

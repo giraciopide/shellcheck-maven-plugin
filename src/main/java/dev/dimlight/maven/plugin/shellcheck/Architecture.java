@@ -36,7 +36,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 public enum Architecture {
 
     Linux_x86_64,       // amd64
-    Linux_armv6hf,      // raspberry pi
+    Linux_armv6hf,      // raspberry pi (arm 32)
     Linux_aarch64,      // ARM64
     macOS_x86_64,       // macos
     Windows_x86,        // windows 32 bit
@@ -106,10 +106,10 @@ public enum Architecture {
                 url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
                 break;
             case Linux_armv6hf:
-                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
                 break;
             case Linux_aarch64:
-                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
                 break;
             case macOS_x86_64:
                 url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.darwin.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
@@ -152,7 +152,7 @@ public enum Architecture {
     /**
      * @return the idiomatic suffix for executables dependending on os/arch, i.e. "" for nixes and ".exe" for win.
      */
-    public String executableSuffix() {
+    public String idiomaticExecutableSuffix() {
         if (this.equals(Windows_x86)) {
             return ".exe";
         }
