@@ -29,7 +29,7 @@ shellcheck exit code) with the `failBuildIfWarnings` property.
             <plugin>
                 <groupId>dev.dimlight</groupId>
                 <artifactId>shellcheck-maven-plugin</artifactId>
-                <version>${shellcheck-maven-plugin.version}</version>
+                <version>0.1.0</version>
                 <executions>
                     <execution>
                         <id>simple-check</id>
