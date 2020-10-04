@@ -14,6 +14,8 @@ This is controlled by the `binaryResolutionMethod` plugin configuration property
     * you're bound to the embedded shellcheck version (currently 0.7.1)
 * `download` the binary will be downloaded at plugin execution time.
     * lets you target a specific shellcheck version different from the embedded one
+    * the download is performed under the hood by the maven-download-plugin which provides caching, so you won't
+      be downloading the same binary over and over
 * `external` the path to a shellcheck binary needs to be provided.
     * you have all control
     * requiring external tools to be installed makes the build less self-contained
@@ -50,7 +52,7 @@ The plugin is released on maven central, so you can use it in your build like th
                             </sourceLocations>
 
                             <!-- the cmdline args to pass to shellcheck 
-                                 this example maps to the cmdline "shellcheck -a -s bash --format=tty --norc -->
+                                 this example maps to the cmdline "shellcheck -a -s bash --format=tty --norc" -->
                             <args>
                                 <arg>-a</arg>
                                 <arg>-s</arg>
@@ -63,7 +65,7 @@ The plugin is released on maven central, so you can use it in your build like th
                             <failBuildIfWarnings>false</failBuildIfWarnings>
 
 
-                            <!-- chose the binary resolution method embedded, download or external --> 
+                            <!-- chose the binary resolution method "embedded", "download" or "external" --> 
                             <binaryResolutionMethod>download</binaryResolutionMethod>
 
                             <!-- if you have chosen "download" as resolution method, you may also provide the url of the shellcheck
@@ -79,6 +81,7 @@ The plugin is released on maven central, so you can use it in your build like th
                                   fetch the embedded binaries will be used instead. However, at that point
                                   you may as well use the embedded binaries -->
                             <releaseArchiveUrls>
+                                <Linux-amd64>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.x86_64.tar.xz</Linux-amd64>
                                 <Mac_OS_X-x86_64>https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.darwin.x86_64.tar.xz</Mac_OS_X-x86_64>
                             </releaseArchiveUrls>                            
 
@@ -98,8 +101,8 @@ The plugin is released on maven central, so you can use it in your build like th
 
 * jdk >= 8
 * maven >= 3.5.4
-* working internet connection needed to retrieve the shellcheck binaries (configure your proxy in your maven settings.xml if
-you're behind one)
+* working internet connection needed to retrieve the shellcheck binaries (configure your proxy in your maven settings.xml 
+if you're behind one)
 
 ```
 mvn clean install
@@ -110,7 +113,7 @@ mvn clean install
 shellcheck-maven-plugin is licensed under the GNU General Public License, v3. A copy of this license 
 is included in the file LICENSE.txt.
 
-copyright 2020, Marco Nicolini.
+Copyright 2020, Marco Nicolini.
 
 ##  Shellcheck copyright notice
 
