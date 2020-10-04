@@ -84,6 +84,15 @@ public class ShellCheckMojo extends AbstractMojo {
     private Map<String, URL> releaseArchiveUrls;
 
     /**
+     * The command line options to use when invoking the shellcheck binary.
+     * A map is used to avoid having to parse a command line from scratch (which is not as easy as splitting on
+     * whitespace since whitespace might be quoted).
+     * The inconvenience is rather small, since configuration is written and rarely changed.
+     */
+    @Parameter(required = false, readonly = true, defaultValue = "")
+    private List<String> args;
+
+    /**
      * The expected extension to filter shell files (e.g. ".sh").
      */
     @Parameter(required = true, defaultValue = ".sh", readonly = true)
@@ -129,7 +138,9 @@ public class ShellCheckMojo extends AbstractMojo {
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);
 
-            final Shellcheck.Result result = Shellcheck.run(binary, pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
+            final Shellcheck.Result result = Shellcheck.run(binary,
+                    args == null ? Collections.emptyList() : args,
+                    pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
 
             // print stdout and stderr to maven log.
             Files.readAllLines(result.stdout).forEach(log::warn);

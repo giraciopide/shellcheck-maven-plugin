@@ -10,12 +10,12 @@ package dev.dimlight.maven.plugin.shellcheck;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -63,17 +63,23 @@ public class Shellcheck {
      *
      * @param shellcheckBinary the binary for shellcheck
      * @param outdir           where the output files will be stored
+     * @param args             the command line args to be passed to the shellcheck binary
      * @param scriptsToCheck   the list of arguments to shellcheck
      * @return a result object containing exit code and captured outputs (on file)
      * @throws IOException          if something goes bad doing io things (writing files etc...)
      * @throws InterruptedException if the thread gets interrupted while waiting for shellcheck to finish
      */
-    public static Result run(Path shellcheckBinary, Path outdir, List<Path> scriptsToCheck) throws IOException, InterruptedException {
+    public static Result run(Path shellcheckBinary,
+                             List<String> args,
+                             Path outdir,
+                             List<Path> scriptsToCheck) throws IOException, InterruptedException {
+
         final String pluginOutDirAbsPath = outdir.toFile().getAbsolutePath();
 
         // build the cmd line args "shellcheck file1.sh file2.sh ..."
-        final List<String> commandAndArgs = new ArrayList<>(scriptsToCheck.size() + 1);
+        final List<String> commandAndArgs = new ArrayList<>();
         commandAndArgs.add(shellcheckBinary.toFile().getAbsolutePath()); // the shellcheck binary
+        commandAndArgs.addAll(args); // the args
         commandAndArgs.addAll(scriptsToCheck.stream()
                 .map(path -> path.toFile().getAbsolutePath())
                 .collect(Collectors.toList()));

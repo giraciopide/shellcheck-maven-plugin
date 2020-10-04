@@ -43,14 +43,25 @@ The plugin is released on maven central, so you can use it in your build like th
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <!-- set to true if you want the build to fail when you have warnings -->
-                            <failBuildIfWarnings>false</failBuildIfWarnings>
-
                             <!-- set the locations where to look for *sh files, or set individual sh file paths as well
                                  by default looks in ${project.basedir}/src/main/sh -->
                             <sourceLocations>
                                 <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
                             </sourceLocations>
+
+                            <!-- the cmdline args to pass to shellcheck 
+                                 this example maps to the cmdline "shellcheck -a -s bash --format=tty --norc -->
+                            <args>
+                                <arg>-a</arg>
+                                <arg>-s</arg>
+                                <arg>bash</arg>
+                                <arg>--format=tty</arg>
+                                <arg>--norc</arg>
+                            </args>
+
+                            <!-- set to true if you want the build to fail when you have warnings -->
+                            <failBuildIfWarnings>false</failBuildIfWarnings>
+
 
                             <!-- chose the binary resolution method embedded, download or external --> 
                             <binaryResolutionMethod>download</binaryResolutionMethod>
