@@ -1,34 +1,38 @@
 # shellcheck-maven-plugin
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin)
 
 A maven plugin to execute shellcheck in a maven build
 
 ## How it works
-The plugin has a single `check` goal that searches for shell files in standard (/src/main/sh, configurable) locations 
+
+The plugin has a single `check` goal that searches for shell files in standard (/src/main/sh, configurable) locations
 and invokes shellcheck on them.
 
-Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary.
-This is controlled by the `binaryResolutionMethod` plugin configuration property:
+Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary. This
+is controlled by the `binaryResolutionMethod` plugin configuration property:
+
 * `embedded` the plugin will use a shellcheck binary embedded in the plugin jar.
     * useful if you're behind proxy and you want zero-hassles in configuring things
     * you're bound to the embedded shellcheck version (currently 0.7.1)
 * `download` the binary will be downloaded at plugin execution time.
     * lets you target a specific shellcheck version different from the embedded one
-    * the download is performed under the hood by the maven-download-plugin which provides caching, so you won't
-      be downloading the same binary over and over
+    * the download is performed under the hood by the maven-download-plugin which provides caching, so you won't be
+      downloading the same binary over and over
 * `external` the path to a shellcheck binary needs to be provided.
     * you have all control
     * requiring external tools to be installed makes the build less self-contained
 
-For "embedded" and "download" resolutions, at plugin execution time, the resolved binary
-is copied to `${project.buid.directory}/shellcheck-plugin/shellcheck` and then invoked.
+For "embedded" and "download" resolutions, at plugin execution time, the resolved binary is copied
+to `${project.buid.directory}/shellcheck-plugin/shellcheck` and then invoked.
 
-Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero 
-shellcheck exit code) with the `failBuildIfWarnings` property.
+Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero shellcheck exit code)
+with the `failBuildIfWarnings` property.
 
 ## Usage
 
-The plugin is released on maven central, so you can use it in your build like this:
+The plugin is released on maven central, so you can use it in your build like this (just replace
+${shellcheck-maven-plugin.version} with the latest version).
 
 ```
     <build>
@@ -36,7 +40,7 @@ The plugin is released on maven central, so you can use it in your build like th
             <plugin>
                 <groupId>dev.dimlight</groupId>
                 <artifactId>shellcheck-maven-plugin</artifactId>
-                <version>0.1.0</version>
+                <version>{shellcheck-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>simple-check</id>
@@ -101,8 +105,8 @@ The plugin is released on maven central, so you can use it in your build like th
 
 * jdk >= 8
 * maven >= 3.5.4
-* working internet connection needed to retrieve the shellcheck binaries (configure your proxy in your maven settings.xml 
-if you're behind one)
+* working internet connection needed to retrieve the shellcheck binaries (configure your proxy in your maven
+  settings.xml if you're behind one)
 
 ```
 mvn clean install
@@ -110,12 +114,12 @@ mvn clean install
 
 ## Copyright notice
 
-shellcheck-maven-plugin is licensed under the GNU General Public License, v3. A copy of this license 
-is included in the file LICENSE.txt.
+shellcheck-maven-plugin is licensed under the GNU General Public License, v3. A copy of this license is included in the
+file LICENSE.txt.
 
 Copyright 2020, Marco Nicolini.
 
-##  Shellcheck copyright notice
+## Shellcheck copyright notice
 
 ShellCheck is licensed under the GNU General Public License.
 
