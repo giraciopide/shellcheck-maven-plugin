@@ -109,7 +109,7 @@ public enum Architecture {
                 url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.x86_64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
                 break;
             case Linux_armv6hf:
-                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v$%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
+                url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.armv6hf.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
                 break;
             case Linux_aarch64:
                 url = String.format("https://github.com/koalaman/shellcheck/releases/download/v%s/shellcheck-v%s.linux.aarch64.tar.xz", Shellcheck.VERSION, Shellcheck.VERSION);
