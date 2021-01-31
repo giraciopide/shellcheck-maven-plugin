@@ -28,9 +28,14 @@
                         </goals>
                         <configuration>
                             <failBuildIfWarnings>false</failBuildIfWarnings>
-                            <sourceLocations>
-                                <sourceLocation>${project.basedir}/src/main/sh</sourceLocation>
-                            </sourceLocations>
+                            <sourceDirs>
+                                <sourceDir>
+                                    <directory>${project.basedir}/src/main/sh</directory>
+                                    <includes>
+                                        <include>**/*.sh</include>
+                                    </includes>
+                                </sourceDir>
+                            </sourceDirs>
                             <binaryResolutionMethod>download</binaryResolutionMethod>
                             <releaseArchiveUrls>
                                 <Mac_OS_X-x86_64>

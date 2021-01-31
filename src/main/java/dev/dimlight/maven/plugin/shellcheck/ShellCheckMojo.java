@@ -22,7 +22,6 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #L%
  */
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -33,6 +32,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.model.fileset.util.FileSetManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,24 +41,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * Runs the shellcheck binary on the all shell files found in the sourceLocations.
+ * Runs the shellcheck binary on the files specified with sourceDirs.
  */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY)
 public class ShellCheckMojo extends AbstractMojo {
 
     /**
-     * A list of directory or files where to look for shell files to be checked.
+     * A list of directory or FileSets where to look for sh files to check.
      */
     @Parameter(required = false, readonly = true)
-    private List<File> sourceLocations;
+    private List<SourceDir> sourceDirs;
+
+    /**
+     * The expected extension to filter shell files (e.g. ".sh").
+     */
+    @Parameter(required = true, defaultValue = ".sh", readonly = true)
+    private String shellFileExtension;
 
     /**
      * The way the plugin should attempt binary resolution
@@ -91,12 +97,6 @@ public class ShellCheckMojo extends AbstractMojo {
      */
     @Parameter(required = false, readonly = true, defaultValue = "")
     private List<String> args;
-
-    /**
-     * The expected extension to filter shell files (e.g. ".sh").
-     */
-    @Parameter(required = true, defaultValue = ".sh", readonly = true)
-    private String shellFileExtension;
 
     @Parameter(required = true, defaultValue = "false")
     private boolean failBuildIfWarnings;
@@ -159,37 +159,40 @@ public class ShellCheckMojo extends AbstractMojo {
     }
 
     /**
-     * @return the source locations to be searched for shell files.
+     * By default we search in src/main/sh for all *.sh files.
      */
-    private List<File> sourceLocations() {
+    private SourceDir defaultSourceDir() {
         final File srcMainSh = Paths.get(baseDir.getAbsolutePath(), "src", "main", "sh").toFile();
-        return sourceLocations == null ? Collections.singletonList(srcMainSh) : sourceLocations;
+        final SourceDir sourceDir = new SourceDir();
+        sourceDir.setDirectory(srcMainSh.getAbsolutePath());
+        sourceDir.addInclude("**/*.sh");
+        return sourceDir;
     }
 
     /**
      * Walks the source locations searching for shell files.
      *
      * @return the list of files to be checked by shellcheck.
-     * @throws IOException if something goes bad while walking the filesystem.
      */
     // a false positive due to due to redundant null checks in try-with-resources synthetized finally
-    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    private List<Path> searchFilesToBeChecked() throws IOException {
-        final List<Path> foundFiles = new ArrayList<>();
-        for (File sourceLocation : sourceLocations()) {
-            if (sourceLocation.isFile()) {
-                foundFiles.add(sourceLocation.toPath());
-            } else if (sourceLocation.isDirectory()) {
-                try (final Stream<Path> paths = Files.walk(Paths.get(sourceLocation.getAbsolutePath()))) {
-                    foundFiles.addAll(paths
-                            .filter(path -> path.toFile().isFile())
-                            .filter(path -> path.toFile().getName().endsWith(shellFileExtension))
-                            .collect(Collectors.toList()));
-                }
-            } else {
-                getLog().warn("Skipped shellcheck source location [" + sourceLocation + "]");
-            }
+    private List<Path> searchFilesToBeChecked() throws MojoExecutionException {
+
+        final Log log = getLog();
+        final FileSetManager fileSetManager = new FileSetManager(log, true);
+
+        final List<Path> filesToCheck = new ArrayList<>();
+
+        final List<SourceDir> sourceDirs = Optional.ofNullable(this.sourceDirs)
+                .orElse(Collections.singletonList(defaultSourceDir()));
+
+        for (SourceDir sourceDir : sourceDirs) {
+            final List<Path> includedFiles = Arrays.stream(fileSetManager.getIncludedFiles(sourceDir))
+                    .map(includedFile -> Paths.get(sourceDir.getDirectory(), includedFile))
+                    .collect(Collectors.toList());
+            includedFiles.forEach(f -> log.debug("found included file: [" + f + "]"));
+            filesToCheck.addAll(includedFiles);
         }
-        return foundFiles;
+
+        return filesToCheck;
     }
 }

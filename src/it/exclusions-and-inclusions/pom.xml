@@ -4,10 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.dimlight.it</groupId>
-    <artifactId>embedded-binary-it</artifactId>
+    <artifactId>exclusions-and-inclusions</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <description>A simple IT verifying the basic use case.</description>
+    <description>
+        Verifies that inclusions and exclusions work as expected.
+        Every goofy file has triggers 2 shellcheck warnings. We have 4 goofy files, but
+        we exclude goofy 1, 2, 4. Since only 3 is really checked we should have only 2 shellchecks warnings.
+    </description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,10 +34,13 @@
                             <failBuildIfWarnings>false</failBuildIfWarnings>
                             <sourceDirs>
                                 <sourceDir>
-                                    <directory>${project.basedir}/src/main/sh</directory>
+                                    <directory>${project.basedir}</directory>
                                     <includes>
                                         <include>**/*.sh</include>
                                     </includes>
+                                    <excludes>
+                                        <exclude>**/sh/**</exclude>
+                                    </excludes>
                                 </sourceDir>
                             </sourceDirs>
                             <binaryResolutionMethod>embedded</binaryResolutionMethod>
