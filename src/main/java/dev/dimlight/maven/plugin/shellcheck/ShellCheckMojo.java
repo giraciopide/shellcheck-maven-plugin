@@ -188,8 +188,8 @@ public class ShellCheckMojo extends AbstractMojo {
         for (SourceDir sourceDir : sourceDirs) {
             final List<Path> includedFiles = Arrays.stream(fileSetManager.getIncludedFiles(sourceDir))
                     .map(includedFile -> Paths.get(sourceDir.getDirectory(), includedFile))
+                    .peek(includedPath -> log.debug("found included file: [" + includedPath + "]"))
                     .collect(Collectors.toList());
-            includedFiles.forEach(f -> log.debug("found included file: [" + f + "]"));
             filesToCheck.addAll(includedFiles);
         }
 
