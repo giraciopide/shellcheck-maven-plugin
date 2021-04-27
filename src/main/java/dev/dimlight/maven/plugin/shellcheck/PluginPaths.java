@@ -41,6 +41,10 @@ public class PluginPaths {
 
     private final Path pluginOutputDirectory;
 
+    /**
+     * @param mavenTargetDirectory the target directory for the current maven project (project.buildDirectory in maven
+     *                             parlance).
+     */
     public PluginPaths(Path mavenTargetDirectory) {
         this.pluginOutputDirectory = Paths.get(mavenTargetDirectory.toFile().getAbsolutePath(), "shellcheck-plugin");
     }

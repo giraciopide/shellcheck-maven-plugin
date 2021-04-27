@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
  */
 public class Shellcheck {
 
+    /**
+     * The version of shellcheck that is embedded in the plugin jar.
+     */
     public static final String VERSION = "0.7.2";
 
     private Shellcheck() {
@@ -43,16 +46,36 @@ public class Shellcheck {
      * The results of a shellcheck run.
      */
     public static class Result {
+
+        /**
+         * The os exit code for the shellcheck invocation.
+         */
         public final int exitCode;
+
+        /**
+         * Path where the captured stdout has been redirected.
+         */
         public final Path stdout;
+
+        /**
+         * Path where the captured stderr has been redirected.
+         */
         public final Path stderr;
 
+        /**
+         * @param exitCode the exit code of the shellcheck invocation.
+         * @param stdout   the path where stdout has been redirected.
+         * @param stderr   the path where stderr has been redirected.
+         */
         public Result(int exitCode, Path stdout, Path stderr) {
             this.exitCode = exitCode;
             this.stdout = stdout;
             this.stderr = stderr;
         }
 
+        /**
+         * @return true if the exit code is non-zero.
+         */
         public boolean isNotOk() {
             return exitCode != 0;
         }

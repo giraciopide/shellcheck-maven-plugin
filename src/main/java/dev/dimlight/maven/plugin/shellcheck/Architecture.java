@@ -35,17 +35,52 @@ import java.nio.file.attribute.PosixFilePermissions;
  */
 public enum Architecture {
 
-    Linux_x86_64,       // amd64
-    Linux_armv6hf,      // raspberry pi (arm 32)
-    Linux_aarch64,      // ARM64
-    macOS_x86_64,       // macos
-    Windows_x86,        // windows 32 bit
+    /**
+     * amd64.
+     */
+    Linux_x86_64,
+
+    /**
+     * raspberry pi (arm 32).
+     */
+    Linux_armv6hf,
+
+    /**
+     * ARM64.
+     */
+    Linux_aarch64,
+
+    /**
+     * macosx on intel.
+     */
+    macOS_x86_64,
+
+    /**
+     * win32.
+     */
+    Windows_x86,
+
+    /**
+     * none of the above.
+     */
     unsupported;
 
+    /**
+     * Returns the currently os/arch key identifier.
+     * This identifier is printed as part of the plugin execution and can be used to provide different download urls
+     * for different architectures, allowing multi-arch builds.
+     *
+     * @return the string identifying the architecture for download purposes.
+     */
     public static String osArchKey() {
         return (System.getProperty("os.name") + "-" + System.getProperty("os.arch")).replace(" ", "_");
     }
 
+    /**
+     * Detects the current architecture on which the plugin is being run.
+     *
+     * @return the detected architecture.
+     */
     public static Architecture detect() {
         final String osName = System.getProperty("os.name").toLowerCase();
         final String osArch = System.getProperty("os.arch");
@@ -95,6 +130,9 @@ public enum Architecture {
         return String.format("/shellcheck-bin/%s/shellcheck-v%s/shellcheck", this.name(), Shellcheck.VERSION);
     }
 
+    /**
+     * @return true if the system appears to be of the nix family (macosx included).
+     */
     public boolean isUnixLike() {
         return !this.equals(Windows_x86);
     }
@@ -131,6 +169,12 @@ public enum Architecture {
         }
     }
 
+    /**
+     * Makes the given path executable (for unices, for windows does nothing).
+     *
+     * @param path the path to make executable.
+     * @throws IOException if something goes wrong.
+     */
     public void makeExecutable(Path path) throws IOException {
         switch (this) {
             case unsupported:
@@ -162,7 +206,7 @@ public enum Architecture {
         return "";
     }
 
-    public static String notSupportedMessage(String prefix) {
+    private static String notSupportedMessage(String prefix) {
         return prefix + " os.name [" + System.getProperty("os.name") + "]" +
                 " os.arch [" + System.getProperty("os.arch") + "]";
     }
