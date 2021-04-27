@@ -136,4 +136,4 @@ Copyright 2021, Marco Nicolini.
 
 ShellCheck is licensed under the GNU General Public License.
 
-Copyright 2012-2019, Vidar 'koala_man' Holen and contributors.
+Copyright 2012-2021, Vidar 'koala_man' Holen and contributors.
