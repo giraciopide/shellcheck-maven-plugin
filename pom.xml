@@ -63,7 +63,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.5.4</maven.version>
 
-        <shellcheck.version>0.7.1</shellcheck.version>
+        <shellcheck.version>0.7.2</shellcheck.version>
         <shellcheck.bins.directory>${project.build.directory}/classes/shellcheck-bin</shellcheck.bins.directory>
     </properties>
 

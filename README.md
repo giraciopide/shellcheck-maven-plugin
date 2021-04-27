@@ -14,7 +14,7 @@ is controlled by the `binaryResolutionMethod` plugin configuration property:
 
 * `embedded` the plugin will use a shellcheck binary embedded in the plugin jar.
     * useful if you're behind proxy and you want zero-hassles in configuring things
-    * you're bound to the embedded shellcheck version (currently 0.7.1)
+    * you're bound to the embedded shellcheck version (currently 0.7.2)
 * `download` the binary will be downloaded at plugin execution time.
     * lets you target a specific shellcheck version different from the embedded one
     * the download is performed under the hood by the maven-download-plugin which provides caching, so you won't be
@@ -95,10 +95,10 @@ ${shellcheck-maven-plugin.version} with the latest version).
                               you may as well use the embedded binaries -->
                         <releaseArchiveUrls>
                             <Linux-amd64>
-                                https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.x86_64.tar.xz
+                                https://github.com/koalaman/shellcheck/releases/download/v0.7.2/shellcheck-v0.7.2.linux.x86_64.tar.xz
                             </Linux-amd64>
                             <Mac_OS_X-x86_64>
-                                https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.darwin.x86_64.tar.xz
+                                https://github.com/koalaman/shellcheck/releases/download/v0.7.2/shellcheck-v0.7.2.darwin.x86_64.tar.xz
                             </Mac_OS_X-x86_64>
                         </releaseArchiveUrls>
 
