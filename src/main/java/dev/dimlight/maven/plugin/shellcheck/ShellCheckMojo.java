@@ -55,6 +55,12 @@ import java.util.stream.Collectors;
 public class ShellCheckMojo extends AbstractMojo {
 
     /**
+     * Skips the plugin execution if set to true.
+     */
+    @Parameter(property = "skip.shellcheck", required = true, defaultValue = "false", readonly = true)
+    private boolean skip;
+
+    /**
      * A list of directory or FileSets where to look for sh files to check.
      */
     @Parameter(required = false, readonly = true)
@@ -124,6 +130,11 @@ public class ShellCheckMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
 
         final Log log = getLog();
+        if (skip) {
+            log.info("Skipping plugin execution");
+            return;
+        }
+
         final PluginPaths pluginPaths = new PluginPaths(outputDirectory.toPath());
 
         try {

@@ -49,6 +49,9 @@ ${shellcheck-maven-plugin.version} with the latest version).
                     <goals>
                         <goal>check</goal>
                     </goals>
+
+                    <!-- all configuration keys are included in this example -->
+
                     <configuration>
                         <!-- The source dirs where files to check are searched.
                              This is a FileSet https://maven.apache.org/shared/file-management/fileset.html
@@ -104,6 +107,9 @@ ${shellcheck-maven-plugin.version} with the latest version).
 
                         <!-- If you chose "external" as resolution method you need also to provide the "externalBinaryPath" -->
                         <!-- externalBinaryPath>/path/to/shellcheck</externalBinaryPath -->
+
+                        <!-- If set to true plugin execution will be skipped (you can also use the property skip.shellcheck) -->
+                        <skip>false</skip>
                     </configuration>
                 </execution>
             </executions>
