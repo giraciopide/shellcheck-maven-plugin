@@ -8,7 +8,6 @@
     <version>0.3.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
-
     <name>${project.groupId}:${project.artifactId}</name>
     <url>https://github.com/marco-nicolini/shellcheck-maven-plugin</url>
     <description>A maven plugin to execute shellcheck as part of a maven build</description>
