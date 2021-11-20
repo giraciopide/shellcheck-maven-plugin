@@ -10,7 +10,7 @@ The plugin has a single `check` goal that searches for shell files in standard c
 invokes shellcheck on them.
 
 Since shellcheck is a non-java application the plugin provides automatic ways to get hold of the shellcheck binary. This
-is controlled by the `binaryResolutionMethod` plugin configuration property:
+is controlled by the `binaryResolutionMethod` plugin configuration:
 
 * `embedded` the plugin will use a shellcheck binary embedded in the plugin jar.
     * useful if you're behind proxy and you want zero-hassles in configuring things
@@ -23,7 +23,7 @@ is controlled by the `binaryResolutionMethod` plugin configuration property:
     * you have all control
     * requiring external tools to be installed makes the build less self-contained
 
-For "embedded" and "download" resolutions, at plugin execution time, the resolved binary is copied
+For `embedded` and `download` resolutions, at plugin execution time, the resolved binary is copied
 to `${project.buid.directory}/shellcheck-plugin/shellcheck` and then invoked.
 
 Optionally the plugin can be configured to fail the build if warnings are found (i.e. on non-zero shellcheck exit code)
