@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.dimlight.it</groupId>
+    <artifactId>multi-module-confs</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>child-module-one</module>
+        <module>child-module-two</module>
+    </modules>
+
+    <description>
+        Verifies that the plugins performs as expected in a maven multi-module situation.
+        Every goofy file has triggers 2 shellcheck warnings.
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- configuration for every module -->
+                <plugin>
+                    <groupId>@project.groupId@</groupId>
+                    <artifactId>@project.artifactId@</artifactId>
+                    <version>@project.version@</version>
+                    <executions>
+                        <execution>
+                            <id>simple-check</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                            <configuration>
+                                <sourceDirs>
+                                    <sourceDir>
+                                        <directory>${project.basedir}/src/main/resources</directory>
+                                        <includes>
+                                            <include>**/*.sh</include>
+                                        </includes>
+                                    </sourceDir>
+                                </sourceDirs>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
+                <!--
+                    this disables inheritance of this plugin definition for child modules!
+                    they will have to define the plugin on their own if they need it
+                -->
+                <inherited>false</inherited>
+
+                <executions>
+                    <execution>
+                        <id>simple-check</id>
+                        <phase>verify</phase>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>
+                                    <directory>${project.basedir}/parent-module-scripts</directory>
+                                    <includes>
+                                        <include>**/*.sh</include>
+                                    </includes>
+                                </sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
