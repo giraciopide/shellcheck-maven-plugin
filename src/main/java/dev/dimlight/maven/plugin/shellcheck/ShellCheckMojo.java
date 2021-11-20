@@ -133,13 +133,13 @@ public class ShellCheckMojo extends AbstractMojo {
             final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
                     outputDirectory.toPath(),
                     Optional.ofNullable(externalBinaryPath).map(File::toPath),
-                    Optional.ofNullable(releaseArchiveUrls).orElse(Collections.emptyMap()),
+                    Optional.ofNullable(releaseArchiveUrls).orElseGet(Collections::emptyMap),
                     log);
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);
 
             final Shellcheck.Result result = Shellcheck.run(binary,
-                    args == null ? Collections.emptyList() : args,
+                    Optional.ofNullable(args).orElseGet(Collections::emptyList),
                     pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
 
             // print stdout and stderr to maven log.
@@ -159,7 +159,9 @@ public class ShellCheckMojo extends AbstractMojo {
     }
 
     /**
-     * By default we search in src/main/sh for all *.sh files.
+     * By default, we search in src/main/sh for all *.sh files.
+     *
+     * @return the default source dir configuration.
      */
     private SourceDir defaultSourceDir() {
         final File srcMainSh = Paths.get(baseDir.getAbsolutePath(), "src", "main", "sh").toFile();
@@ -174,7 +176,6 @@ public class ShellCheckMojo extends AbstractMojo {
      *
      * @return the list of files to be checked by shellcheck.
      */
-    // a false positive due to due to redundant null checks in try-with-resources synthetized finally
     private List<Path> searchFilesToBeChecked() throws MojoExecutionException {
 
         final Log log = getLog();
