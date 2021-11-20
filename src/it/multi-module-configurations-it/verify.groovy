@@ -14,3 +14,4 @@ assert countWarnings("target/shellcheck-plugin/shellcheck.stdout") == 4
 
 // child-module2 should check only 1 file  hence get 2 warnings.
 assert countWarnings("child-module-two/target/shellcheck-plugin/shellcheck.stdout") == 2
+assert countWarnings("child-module-three/target/shellcheck-plugin/shellcheck.stdout") == 2

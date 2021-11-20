@@ -12,6 +12,7 @@
     <modules>
         <module>child-module-one</module>
         <module>child-module-two</module>
+        <module>child-module-three</module>
     </modules>
 
     <description>
@@ -34,7 +35,7 @@
                     <executions>
                         <execution>
                             <id>simple-check</id>
-                            <phase>none</phase>
+                            <phase>none</phase><!-- this is important!!! -->
                             <goals>
                                 <goal>check</goal>
                             </goals>
@@ -58,7 +59,6 @@
             <plugin>
                 <groupId>@project.groupId@</groupId>
                 <artifactId>@project.artifactId@</artifactId>
-                <version>@project.version@</version>
                 <!--
                     this disables inheritance of this plugin definition for child modules!
                     they will have to define the plugin on their own if they need it

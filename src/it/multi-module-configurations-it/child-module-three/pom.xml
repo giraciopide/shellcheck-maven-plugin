@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>child-module-two</artifactId>
+    <artifactId>child-module-three</artifactId>
 
     <packaging>jar</packaging>
 
