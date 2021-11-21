@@ -36,19 +36,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
  * Groups differents ways of getting hold of the correct shellcheck binary.
@@ -73,6 +65,7 @@ public class BinaryResolver {
      * @param releaseArchiveUrl    the url where to find the wanted release of shellcheck
      * @param log                  a maven logger
      */
+    @SuppressFBWarnings(value = {"EI_EXPOSE_REP2"}, justification = "We know what we're doing, spotbugs does not.")
     public BinaryResolver(MavenProject mavenProject, MavenSession mavenSession, BuildPluginManager pluginManager,
                           Path mavenTargetDirectory,
                           Optional<Path> externalBinaryPath,
@@ -81,7 +74,7 @@ public class BinaryResolver {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
-        this.releaseArchiveUrls = releaseArchiveUrl;
+        this.releaseArchiveUrls = Collections.unmodifiableMap(releaseArchiveUrl);
         this.externalBinaryPath = externalBinaryPath;
         this.log = log;
         this.arch = Architecture.detect();
