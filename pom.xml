@@ -64,6 +64,21 @@
 
         <shellcheck.version>0.8.0</shellcheck.version>
         <shellcheck.bins.directory>${project.build.directory}/classes/shellcheck-bin</shellcheck.bins.directory>
+
+        <version.junit>4.12</version.junit>
+        <version.maven-plugin-testing-harness>3.3.0</version.maven-plugin-testing-harness>
+        <version.mojo-executor>2.3.0</version.mojo-executor>
+        <version.spotbugs-annotations>4.1.2</version.spotbugs-annotations>
+        <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
+        <version.file-management>3.0.0</version.file-management>
+        <version.maven-plugin-plugin>3.6.0</version.maven-plugin-plugin>
+        <version.download-maven-plugin>1.6.0</version.download-maven-plugin>
+        <version.spotbugs-maven-plugin>4.0.4</version.spotbugs-maven-plugin>
+        <version.maven-invoker-plugin>3.1.0</version.maven-invoker-plugin>
+        <version.maven-source-plugin>3.2.0</version.maven-source-plugin>
+        <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
+        <version.license-maven-plugin>2.0.0</version.license-maven-plugin>
+        <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     </properties>
 
     <dependencies>
@@ -91,42 +106,45 @@
             <version>${maven.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.0</version>
+            <version>${version.maven-plugin-annotations}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.maven.plugin-testing</groupId>
             <artifactId>maven-plugin-testing-harness</artifactId>
-            <version>3.3.0</version>
+            <version>${version.maven-plugin-testing-harness}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.twdata.maven</groupId>
             <artifactId>mojo-executor</artifactId>
-            <version>2.3.0</version>
+            <version>${version.mojo-executor}</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.1.2</version>
+            <version>${version.spotbugs-annotations}</version>
             <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>file-management</artifactId>
-            <version>3.0.0</version>
+            <version>${version.file-management}</version>
         </dependency>
     </dependencies>
 
@@ -177,7 +195,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>${version.maven-plugin-plugin}</version>
                 <configuration>
                     <!-- <goalPrefix>maven-archetype-plugin</goalPrefix> -->
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
@@ -201,7 +219,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <version>${version.download-maven-plugin}</version>
                 <executions>
                     <execution>
                         <id>download-macOS_x86_64</id>
@@ -279,7 +297,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.0.4</version>
+                <version>${version.spotbugs-maven-plugin}</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -293,7 +311,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${version.maven-invoker-plugin}</version>
                 <configuration>
                     <debug>true</debug>
                     <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
@@ -323,7 +341,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>${version.maven-source-plugin}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -338,7 +356,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>${version.maven-javadoc-plugin}</version>
                 <configuration>
                     <show>public</show>
                 </configuration>
@@ -356,7 +374,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.0.0</version>
+                <version>${version.license-maven-plugin}</version>
                 <configuration>
                     <licenseName>gpl_v3</licenseName>
                     <roots>
@@ -396,7 +414,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>${version.maven-gpg-plugin}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
