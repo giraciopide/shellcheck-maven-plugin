@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +50,23 @@ public class Shellcheck {
     public static class Result {
 
         /**
+         * Run id.
+         * A number to discriminate different shellcheck runs.
+         */
+        public final String runId;
+
+        /**
+         * The actual command line that was ran to execute shellcheck, as a list.
+         * The content of the list is made up of:
+         * <ol>
+         *     <li>/the/path/to/shellcheck</li>
+         *     <li>the options</li>
+         *     <li>the actual file arguments</li>
+         * </ol>
+         */
+        public final List<String> cmdLine;
+
+        /**
          * The os exit code for the shellcheck invocation.
          */
         public final int exitCode;
@@ -63,11 +82,15 @@ public class Shellcheck {
         public final Path stderr;
 
         /**
+         * @param runId    the id of the run.
+         * @param cmdLine  the cmd line of the run.
          * @param exitCode the exit code of the shellcheck invocation.
          * @param stdout   the path where stdout has been redirected.
          * @param stderr   the path where stderr has been redirected.
          */
-        public Result(int exitCode, Path stdout, Path stderr) {
+        public Result(String runId, List<String> cmdLine, int exitCode, Path stdout, Path stderr) {
+            this.runId = runId;
+            this.cmdLine = cmdLine;
             this.exitCode = exitCode;
             this.stdout = stdout;
             this.stderr = stderr;
@@ -80,6 +103,12 @@ public class Shellcheck {
             return exitCode != 0;
         }
     }
+
+    /**
+     * This is used to produce per-run files to capture stdout and stderr.
+     * This is static because we want to produce independent files even when invoked multiple times.
+     */
+    private static final AtomicLong runCounter = new AtomicLong(0);
 
     /**
      * Runs the provided shellcheck binary capturing its output and return code.
@@ -107,8 +136,9 @@ public class Shellcheck {
                 .map(path -> path.toFile().getAbsolutePath())
                 .collect(Collectors.toList()));
 
-        final Path stdout = Paths.get(pluginOutDirAbsPath, "shellcheck.stdout");
-        final Path stderr = Paths.get(pluginOutDirAbsPath, "shellcheck.stderr");
+        final String runId = Long.toString(runCounter.getAndIncrement());
+        final Path stdout = Paths.get(pluginOutDirAbsPath, "shellcheck." + runId + ".stdout");
+        final Path stderr = Paths.get(pluginOutDirAbsPath, "shellcheck." + runId + ".stderr");
 
         // finally launch shellcheck
         final Process process = new ProcessBuilder()
@@ -118,6 +148,6 @@ public class Shellcheck {
                 .start();
 
         final int exitCode = process.waitFor();
-        return new Result(exitCode, stdout, stderr);
+        return new Result(runId, Collections.unmodifiableList(commandAndArgs), exitCode, stdout, stderr);
     }
 }

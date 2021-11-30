@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
 /**
  * Runs the shellcheck binary on the files specified with sourceDirs.
  */
-@Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY)
+@Mojo(name = "check", threadSafe = false, defaultPhase = LifecyclePhase.VERIFY)
 public class ShellCheckMojo extends AbstractMojo {
 
     /**
@@ -96,7 +97,9 @@ public class ShellCheckMojo extends AbstractMojo {
     private Map<String, URL> releaseArchiveUrls;
 
     /**
-     * The command line options to use when invoking the shellcheck binary.
+     * The command line options to use when invoking the shellcheck binary (this should not include the actual
+     * files to check).
+     * <p>
      * A map is used to avoid having to parse a command line from scratch (which is not as easy as splitting on
      * whitespace since whitespace might be quoted).
      * The inconvenience is rather small, since configuration is written and rarely changed.
@@ -104,23 +107,35 @@ public class ShellCheckMojo extends AbstractMojo {
     @Parameter(required = false, readonly = true, defaultValue = "")
     private List<String> args;
 
+    /**
+     * The max number of files to pass to a single shellcheck invocation, defaults to Integer.MAX_VALUE
+     * which effectively makes it unlimited (as you will arg length limit of the underlying operating system before
+     * reaching Integer.MAX_VALUE arguments.
+     */
+    @Parameter(required = false, readonly = true)
+    private int filesPerInvocation;
+
+    /**
+     * If true, the build will fail if a shellcheck invocation has a non-zero return value (meaning that it
+     * reported some errors)
+     */
     @Parameter(required = true, defaultValue = "false")
     private boolean failBuildIfWarnings;
-
-    @Parameter(required = true, defaultValue = "${project.build.directory}")
-    private File outputDirectory;
-
-    @Parameter(required = true, defaultValue = "${project.basedir}")
-    private File baseDir;
 
     //
     // non externally configurable stuff
     //
 
-    @Parameter(defaultValue = "${project}", readonly = true)
+    @Parameter(required = true, defaultValue = "${project.build.directory}", readonly = true)
+    private File outputDirectory;
+
+    @Parameter(required = true, defaultValue = "${project.basedir}", readonly = true)
+    private File baseDir;
+
+    @Parameter(required = true, defaultValue = "${project}", readonly = true)
     private MavenProject mavenProject;
 
-    @Parameter(defaultValue = "${session}", readonly = true)
+    @Parameter(required = true, defaultValue = "${session}", readonly = true)
     private MavenSession mavenSession;
 
     @Component
@@ -139,8 +154,6 @@ public class ShellCheckMojo extends AbstractMojo {
 
         try {
 
-            final List<Path> scriptsToCheck = searchFilesToBeChecked();
-
             final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
                     outputDirectory.toPath(),
                     Optional.ofNullable(externalBinaryPath).map(File::toPath),
@@ -149,16 +162,37 @@ public class ShellCheckMojo extends AbstractMojo {
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);
 
-            final Shellcheck.Result result = Shellcheck.run(binary,
-                    Optional.ofNullable(args).orElseGet(Collections::emptyList),
-                    pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
+            // perform the runs in chunk (by default runs just once per execution on all files included)
+            final List<Shellcheck.Result> runs = new ArrayList<>();
+            final Iterator<List<Path>> runIter = ChunkIterator.over(filesPerInvocation(), searchFilesToBeChecked());
+            while (runIter.hasNext()) {
+                final List<Path> scriptsToCheck = runIter.next();
 
-            // print stdout and stderr to maven log.
-            Files.readAllLines(result.stdout).forEach(log::warn);
-            Files.readAllLines(result.stderr).forEach(log::error);
+                final long startTime = System.currentTimeMillis();
+                log.debug("Going to run shellcheck on [" + scriptsToCheck.size() + "] files");
+                final Shellcheck.Result result = Shellcheck.run(binary,
+                        Optional.ofNullable(args).orElseGet(Collections::emptyList),
+                        pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
 
-            if (result.isNotOk() && failBuildIfWarnings) {
-                throw new MojoExecutionException("There are shellcheck problems: shellcheck exit code [" + result.exitCode + "]");
+                final long elapsed = System.currentTimeMillis() - startTime;
+
+                log.debug("Ran shellcheck on [" + scriptsToCheck.size() + "] files took [" + elapsed + "] millis");
+                runs.add(result);
+            }
+
+            // inspect the failures and fail the build if configured to do so.,
+            final List<Shellcheck.Result> failures = runs.stream().filter(Shellcheck.Result::isNotOk).collect(Collectors.toList());
+            if (!failures.isEmpty()) {
+
+                for (Shellcheck.Result failRun : failures) {
+                    log.warn("------ Shellcheck run [" + failRun.runId + "] returned [" + failRun.exitCode + "] stdout and stderr will follow -----------------------------------------");
+                    Files.readAllLines(failRun.stdout).forEach(log::warn);
+                    Files.readAllLines(failRun.stderr).forEach(log::error);
+                }
+
+                if (failBuildIfWarnings) {
+                    throw new MojoExecutionException("There are shellcheck problems: [" + failures.size() + "]/[" + runs.size() + "] shellcheck runs had non-zero exit codes");
+                }
             }
 
         } catch (IOException e) {
@@ -167,6 +201,10 @@ public class ShellCheckMojo extends AbstractMojo {
             Thread.currentThread().interrupt();
             throw new MojoExecutionException(e.getMessage(), e);
         }
+    }
+
+    private int filesPerInvocation() {
+        return filesPerInvocation <= 0 ? Integer.MAX_VALUE : filesPerInvocation;
     }
 
     /**
