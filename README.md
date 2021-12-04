@@ -112,8 +112,7 @@ ${shellcheck-maven-plugin.version} with the latest version).
                              negative) the behavior is to pass all files to a single shellcheck invocation.
                              This is useful when you have a big number of files to check and you're hitting the 
                              ARG_MAX limits in you underlying OS: limiting the number of files per invocation can 
-                             bring you back below that limit.
-                            -->
+                             bring you back below that limit -->
                         <filesPerInvocation>-1</filesPerInvocation>
 
                         <!-- If set to true plugin execution will be skipped (you can also use the property skip.shellcheck) -->
