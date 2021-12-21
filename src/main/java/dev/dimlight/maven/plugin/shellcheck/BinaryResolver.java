@@ -30,25 +30,20 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
  * Groups differents ways of getting hold of the correct shellcheck binary.
@@ -166,7 +161,7 @@ public class BinaryResolver {
                 )
         );
 
-        final Path expectedDownloadedBinary = pluginPaths.guessUnpackedBinary(downloadAndUnpackPath, arch);
+        final Path expectedDownloadedBinary = guessUnpackedBinary(downloadAndUnpackPath, arch);
         arch.makeExecutable(expectedDownloadedBinary);
 
         return validateBinaryPath(expectedDownloadedBinary, BinaryResolutionMethod.download);
@@ -179,7 +174,7 @@ public class BinaryResolver {
      * @throws IOException            if something goes bad while extracting and copying to the project build directory.
      * @throws MojoExecutionException if the extracted file cannot be read or executed.
      */
-    // a false positive, javac in java 11+ due to redundant null checks in try-with-resources synthetized finally
+    // a false positive, javac in java 11+ due to redundant null checks in try-with-resources synthesized finally
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
     private Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
         log.debug("Detected arch is [" + arch + "]");
@@ -204,5 +199,41 @@ public class BinaryResolver {
         arch.makeExecutable(binaryPath);
 
         return validateBinaryPath(binaryPath, BinaryResolutionMethod.embedded);
+    }
+
+    /**
+     * Walks the files in fromPath to find what is likely the shellcheck binary.
+     * This is done cause the windows released archive has a different structure (directory and binary-name wise).
+     * <p>
+     * No actual check inspecting the binary is done, the likely binary is "found" only by name.
+     *
+     * @param fromPath the root path from which to start the search.
+     * @param arch     the current detected architecture
+     * @return the path to the binary, if found
+     * @throws FileNotFoundException if the binary is not found
+     * @throws IOException           if the there is an IO problem while walking the filesystem
+     */
+    // a false positive due to due to redundant null checks in try-with-resources synthesized finally
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
+    public static Path guessUnpackedBinary(Path fromPath, Architecture arch) throws IOException {
+        try (final Stream<Path> paths = Files.walk(fromPath)) {
+            final List<File> canditates = paths
+                    .map(Path::toFile)
+                    .filter(File::isFile)
+                    .filter(file -> file.getName().equals("shellcheck" + arch.idiomaticExecutableSuffix()))
+                    .collect(Collectors.toList());
+
+            if (canditates.size() > 1) {
+                throw new FileNotFoundException("There are multiple binaries candidate in the unpacked shellcheck release: [" +
+                        canditates + "] at [" + fromPath + "]");
+            }
+
+            if (canditates.isEmpty()) {
+                throw new FileNotFoundException("No binary candidates found in the unpacked shellcheck release at [" +
+                        fromPath + "]");
+            }
+
+            return canditates.iterator().next().toPath();
+        }
     }
 }

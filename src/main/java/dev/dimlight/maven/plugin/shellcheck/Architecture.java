@@ -120,11 +120,13 @@ public enum Architecture {
             throw new UnsupportedOperationException(notSupportedMessage("No embedded shellcheck binaries for this architecture."));
         }
 
-        // Release archives have a different structure, don't mess with that, just reflect it.
+        // Shellcheck release archives have a different structure depending on the architecture.
+        // We don't mess with that, just reflect it in the hard-coded paths below.
         // Ofc this is fragile, but it's also simple and as long as updating to a new shellcheck version
-        // is a manual process, it's fine.
+        // is a manual process, it's fine: the correctness of these hard-coded paths is checked at build time in
+        // ArchitectureTest.checkCorrectnessOfHardcodedEmbeddedBinaryPaths
         if (this.equals(Architecture.Windows_x86)) {
-            return String.format("/shellcheck-bin/%s/shellcheck-v%s.exe", this.name(), Shellcheck.VERSION);
+            return String.format("/shellcheck-bin/%s/shellcheck.exe", this.name());
         }
 
         return String.format("/shellcheck-bin/%s/shellcheck-v%s/shellcheck", this.name(), Shellcheck.VERSION);

@@ -22,17 +22,8 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #L%
  */
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Utilities for paths related to the plugin.
@@ -62,42 +53,5 @@ public class PluginPaths {
      */
     public Path getPathInPluginOutputDirectory(String... pathFragments) {
         return Paths.get(pluginOutputDirectory.toFile().getAbsolutePath(), pathFragments);
-    }
-
-    /**
-     * Walks the files in fromPath to find what is likely the shellcheck binary.
-     * This is done cause the windows released archive has a different structure (directory and binary-name wise).
-     * <p>
-     * No actual check inspecting the binary is done, the likely binary is "found" only by name.
-     *
-     * @param fromPath the root path from which to start the search.
-     * @param arch     the current detected architecture
-     * @return the path to the binary, if found
-     * @throws FileNotFoundException if the binary is not found
-     * @throws IOException           if the there is an IO problem while walking the filesystem
-     */
-    // a false positive due to due to redundant null checks in try-with-resources synthetized finally
-    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
-    public Path guessUnpackedBinary(Path fromPath, Architecture arch) throws IOException {
-
-        try (final Stream<Path> paths = Files.walk(fromPath)) {
-            final List<File> canditates = paths
-                    .map(Path::toFile)
-                    .filter(File::isFile)
-                    .filter(file -> file.getName().equals("shellcheck" + arch.idiomaticExecutableSuffix()))
-                    .collect(Collectors.toList());
-
-            if (canditates.size() > 1) {
-                throw new FileNotFoundException("There are multiple binaries candidate in the unpacked shellcheck release: [" +
-                        canditates + "] at [" + fromPath + "]");
-            }
-
-            if (canditates.isEmpty()) {
-                throw new FileNotFoundException("No binary candidates found in the unpacked shellcheck release at [" +
-                        fromPath + "]");
-            }
-
-            return canditates.iterator().next().toPath();
-        }
     }
 }
