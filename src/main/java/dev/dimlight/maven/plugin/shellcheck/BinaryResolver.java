@@ -97,7 +97,7 @@ public class BinaryResolver {
             case external:
                 return validateBinaryPath(externalBinaryPath, BinaryResolutionMethod.external);
             case download:
-                return downloadShellcheckBinary();
+                return downloadShellcheckBinaryAndGuessBinary();
             case embedded:
                 return extractEmbeddedShellcheckBinary();
             default:
@@ -131,7 +131,7 @@ public class BinaryResolver {
      *                                the file after the download
      * @throws IOException            in case we fail to make the downloaded binary executable (unix only)
      */
-    private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
+    private Path downloadShellcheckBinaryAndGuessBinary() throws MojoExecutionException, IOException {
         URL u = releaseArchiveUrls.get(Architecture.osArchKey());
         if (u == null) {
             log.warn("No shellcheck download url provided for current os.name-os.arch [" + Architecture.osArchKey() + "]");
