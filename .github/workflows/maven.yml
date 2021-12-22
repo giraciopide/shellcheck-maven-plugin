@@ -1,4 +1,4 @@
-name: Build on JDK8
+name: jdk8 multi os build
 
 on:
   push:
