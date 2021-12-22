@@ -2,7 +2,7 @@ name: Build on JDK8
 
 on:
   push:
-    branches: [ master, dev, setup-actions ]
+    branches: [ master, dev ]
   pull_request:
     branches: [ master, dev ]
 
