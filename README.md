@@ -1,6 +1,7 @@
 # shellcheck-maven-plugin
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.dimlight/shellcheck-maven-plugin)
+![Multi OS build maven build](https://github.com/marco-nicolini/shellcheck-maven-plugin/actions/workflows/maven.yml/badge.svg)
 
 A maven plugin to execute shellcheck in a maven build
 

@@ -30,6 +30,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -37,8 +38,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -95,7 +99,7 @@ public class BinaryResolver {
             case external:
                 return validateBinaryPath(externalBinaryPath, BinaryResolutionMethod.external);
             case download:
-                return downloadShellcheckBinary();
+                return downloadShellcheckBinaryAndGuessBinary();
             case embedded:
                 return extractEmbeddedShellcheckBinary();
             default:
@@ -105,12 +109,12 @@ public class BinaryResolver {
 
     private Path validateBinaryPath(Optional<Path> binaryPath, BinaryResolutionMethod binaryOrigin) throws MojoExecutionException {
         return binaryPath
-                .map(Path::toFile)
-                .filter(File::exists)
-                .filter(File::canRead)
-                .filter(file -> !arch.isUnixLike() || file.canExecute())
-                .map(File::toPath)
-                .orElseThrow(() -> new MojoExecutionException("The " + binaryOrigin.name() + " shellcheck binary has not been provided or cannot be found or is not readable/ executable"));
+            .map(Path::toFile)
+            .filter(File::exists)
+            .filter(File::canRead)
+            .filter(file -> !arch.isUnixLike() || file.canExecute())
+            .map(File::toPath)
+            .orElseThrow(() -> new MojoExecutionException("The " + binaryOrigin.name() + " shellcheck binary has not been provided or cannot be found or is not readable/ executable"));
     }
 
     private Path validateBinaryPath(Path binaryPath, BinaryResolutionMethod binaryOrigin) throws MojoExecutionException {
@@ -129,7 +133,7 @@ public class BinaryResolver {
      *                                the file after the download
      * @throws IOException            in case we fail to make the downloaded binary executable (unix only)
      */
-    private Path downloadShellcheckBinary() throws MojoExecutionException, IOException {
+    private Path downloadShellcheckBinaryAndGuessBinary() throws MojoExecutionException, IOException {
         URL u = releaseArchiveUrls.get(Architecture.osArchKey());
         if (u == null) {
             log.warn("No shellcheck download url provided for current os.name-os.arch [" + Architecture.osArchKey() + "]");
@@ -141,25 +145,25 @@ public class BinaryResolver {
 
         final Path downloadAndUnpackPath = pluginPaths.getPluginOutputDirectory();
         executeMojo(
-                plugin(
-                        groupId("com.googlecode.maven-download-plugin"),
-                        artifactId("download-maven-plugin"),
-                        version("1.6.0")
-                ),
-                goal("wget"),
-                configuration(
-                        element(name("uri"), url), // url is an alias!
-                        element(name("unpack"), "true"),
-                        element(name("outputDirectory"), downloadAndUnpackPath.toFile().getAbsolutePath())
-                ),
-                executionEnvironment(
-                        mavenProject,
-                        mavenSession,
-                        pluginManager
-                )
+            plugin(
+                groupId("com.googlecode.maven-download-plugin"),
+                artifactId("download-maven-plugin"),
+                version("1.6.0")
+            ),
+            goal("wget"),
+            configuration(
+                element(name("uri"), url), // url is an alias!
+                element(name("unpack"), "true"),
+                element(name("outputDirectory"), downloadAndUnpackPath.toFile().getAbsolutePath())
+            ),
+            executionEnvironment(
+                mavenProject,
+                mavenSession,
+                pluginManager
+            )
         );
 
-        final Path expectedDownloadedBinary = pluginPaths.guessUnpackedBinary(downloadAndUnpackPath, arch);
+        final Path expectedDownloadedBinary = guessUnpackedBinary(downloadAndUnpackPath, arch);
         arch.makeExecutable(expectedDownloadedBinary);
 
         return validateBinaryPath(expectedDownloadedBinary, BinaryResolutionMethod.download);
@@ -172,7 +176,7 @@ public class BinaryResolver {
      * @throws IOException            if something goes bad while extracting and copying to the project build directory.
      * @throws MojoExecutionException if the extracted file cannot be read or executed.
      */
-    // a false positive, javac in java 11+ due to redundant null checks in try-with-resources synthetized finally
+    // a false positive, javac in java 11+ due to redundant null checks in try-with-resources synthesized finally
     @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE")
     private Path extractEmbeddedShellcheckBinary() throws IOException, MojoExecutionException {
         log.debug("Detected arch is [" + arch + "]");
@@ -197,5 +201,41 @@ public class BinaryResolver {
         arch.makeExecutable(binaryPath);
 
         return validateBinaryPath(binaryPath, BinaryResolutionMethod.embedded);
+    }
+
+    /**
+     * Walks the files in fromPath to find what is likely the shellcheck binary.
+     * This is done cause the windows released archive has a different structure (directory and binary-name wise).
+     * <p>
+     * No actual check inspecting the binary is done, the likely binary is "found" only by name.
+     *
+     * @param fromPath the root path from which to start the search.
+     * @param arch     the current detected architecture
+     * @return the path to the binary, if found
+     * @throws FileNotFoundException if the binary is not found
+     * @throws IOException           if the there is an IO problem while walking the filesystem
+     */
+    // a false positive due to due to redundant null checks in try-with-resources synthesized finally
+    @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
+    public static Path guessUnpackedBinary(Path fromPath, Architecture arch) throws IOException {
+        try (final Stream<Path> paths = Files.walk(fromPath)) {
+            final List<File> canditates = paths
+                .map(Path::toFile)
+                .filter(File::isFile)
+                .filter(file -> file.getName().equals("shellcheck" + arch.idiomaticExecutableSuffix()))
+                .collect(Collectors.toList());
+
+            if (canditates.size() > 1) {
+                throw new FileNotFoundException("There are multiple binaries candidate in the unpacked shellcheck release: [" +
+                    canditates + "] at [" + fromPath + "]");
+            }
+
+            if (canditates.isEmpty()) {
+                throw new FileNotFoundException("No binary candidates found in the unpacked shellcheck release at [" +
+                    fromPath + "]");
+            }
+
+            return canditates.iterator().next().toPath();
+        }
     }
 }
