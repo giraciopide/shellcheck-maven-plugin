@@ -166,7 +166,7 @@ public class ShellCheckMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "${session}", readonly = true)
     private MavenSession mavenSession;
 
-    @Component
+    @Parameter(defaultValue = "${mojoExecution}", readonly = true)
     private MojoExecution execution; // used to get the execution id
 
     @Component
