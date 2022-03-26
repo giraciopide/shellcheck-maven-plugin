@@ -206,10 +206,10 @@ mvn clean install
 shellcheck-maven-plugin is licensed under the GNU General Public License, v3. A copy of this license is included in the
 file LICENSE.txt.
 
-Copyright 2021, Marco Nicolini.
+Copyright 2022, Marco Nicolini.
 
 ## Shellcheck copyright notice
 
 ShellCheck is licensed under the GNU General Public License.
 
-Copyright 2012-2021, Vidar 'koala_man' Holen and contributors.
+Copyright 2012-2022, Vidar 'koala_man' Holen and contributors.
