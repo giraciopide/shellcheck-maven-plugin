@@ -34,7 +34,6 @@
                     <version>@project.version@</version>
                     <executions>
                         <execution>
-                            <id>simple-check</id>
                             <phase>none</phase><!-- this is important!!! -->
                             <goals>
                                 <goal>check</goal>
@@ -67,7 +66,6 @@
 
                 <executions>
                     <execution>
-                        <id>simple-check</id>
                         <phase>verify</phase>
                         <configuration>
                             <sourceDirs>

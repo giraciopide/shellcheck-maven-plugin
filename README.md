@@ -35,6 +35,10 @@ with the `failBuildIfWarnings` property.
 The plugin is released on maven central, so you can use it in your build like this (just replace
 ${shellcheck-maven-plugin.version} with the latest version).
 
+### Quickstart
+
+The quickest way to get started, using sensible defaults.
+
 ```xml
 
 <build>
@@ -42,7 +46,45 @@ ${shellcheck-maven-plugin.version} with the latest version).
         <plugin>
             <groupId>dev.dimlight</groupId>
             <artifactId>shellcheck-maven-plugin</artifactId>
-            <version>{shellcheck-maven-plugin.version}</version>
+            <version>${shellcheck-maven-plugin.version}</version>
+            <executions>
+                <execution>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                    <configuration>
+                        <sourceDirs>
+                            <sourceDir>
+                                <directory>${project.basedir}/src/main/sh</directory>
+                                <includes>
+                                    <include>**/*.sh</include>
+                                </includes>
+                            </sourceDir>
+                        </sourceDirs>
+                        <failBuildIfWarnings>true</failBuildIfWarnings>
+                        <binaryResolutionMethod>embedded</binaryResolutionMethod>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+### A more comprehensive usage example
+
+This is a fairly comprehensive usage example where almost all configuration knobs are used and some defaults are
+re-stated in the configuration for transparency and documentation purposes.
+
+```xml
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>dev.dimlight</groupId>
+            <artifactId>shellcheck-maven-plugin</artifactId>
+            <version>${shellcheck-maven-plugin.version}</version>
             <executions>
                 <execution>
                     <id>simple-check</id>
@@ -54,6 +96,9 @@ ${shellcheck-maven-plugin.version} with the latest version).
                     <!-- all configuration keys are included in this example -->
 
                     <configuration>
+                        <!-- If set to true plugin execution will be skipped (you can also use the property skip.shellcheck) -->
+                        <skip>false</skip>
+
                         <!-- The source dirs where files to check are searched.
                              This is a FileSet https://maven.apache.org/shared/file-management/fileset.html
                              however the only things making sense to be specified here are:
@@ -106,18 +151,33 @@ ${shellcheck-maven-plugin.version} with the latest version).
                             </Mac_OS_X-x86_64>
                         </releaseArchiveUrls>
 
-                        <!-- If you chose "external" as resolution method you need also to provide the "externalBinaryPath" -->
+                        <!-- if you chose "external" as resolution method you need also to provide the "externalBinaryPath" -->
                         <!-- externalBinaryPath>/path/to/shellcheck</externalBinaryPath -->
+
+                        <!-- Set this to true (along with the filesPerInvocation parameter) to split the check the files 
+                             in multiple shellcheck invocations each of which will check at maximum <filesPerInvocation>
+                             files.
+                             This is false by default, which means that all files to check are passed as args
+                             to a single shellcheck invocation. -->
+                        <splitInvocations>false</splitInvocations>
 
                         <!-- number of files to pass to a single shellcheck invocation. If not specified (or when 0 or
                              negative) the behavior is to pass all files to a single shellcheck invocation.
                              This is useful when you have a big number of files to check and you're hitting the 
                              ARG_MAX limits in you underlying OS: limiting the number of files per invocation can 
-                             bring you back below that limit -->
-                        <filesPerInvocation>-1</filesPerInvocation>
+                             bring you back below that limit. By default equals to Short.MAX_VALUE, taken into
+                             account only when splitInvocations is true -->
+                        <!-- filesPerInvocation>32767</filesPerInvocation -->
 
-                        <!-- If set to true plugin execution will be skipped (you can also use the property skip.shellcheck) -->
-                        <skip>false</skip>
+                        <!-- Name of the file (that will be placed in the plugin output directory) where the shellcheck 
+                             stdout/stderr will be redirected.
+                             It can be a simple filename or it can be a "template name" including the placeholders 
+                             "@executionId@" and "@runNumber@". This gives you the flexibility to discriminate 
+                             captured outputs on different executions on the same plugin definition (or to discriminate
+                             among different runs when <splitInvocations> is true.) 
+                             Defaults to "shellcheck.@executionId@.@runNumber@.stderr" -->
+                        <capturedStdoutFileName>shellcheck.@executionId@.stdout</capturedStdoutFileName>
+                        <capturedStderrFileName>shellcheck.@executionId@.stderr</capturedStderrFileName>
                     </configuration>
                 </execution>
             </executions>
@@ -125,6 +185,8 @@ ${shellcheck-maven-plugin.version} with the latest version).
     </plugins>
 </build>
 ```
+
+More exampels examples are available in the `it` (integration tests) directory in the source tree.
 
 ## How to build
 

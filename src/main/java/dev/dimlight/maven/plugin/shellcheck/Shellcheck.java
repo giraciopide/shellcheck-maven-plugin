@@ -24,11 +24,9 @@ package dev.dimlight.maven.plugin.shellcheck;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +49,7 @@ public class Shellcheck {
 
         /**
          * Run id.
-         * A number to discriminate different shellcheck runs.
+         * A label to discriminate different shellcheck runs.
          */
         public final String runId;
 
@@ -105,49 +103,41 @@ public class Shellcheck {
     }
 
     /**
-     * This is used to produce per-run files to capture stdout and stderr.
-     * This is static because we want to produce independent files even when invoked multiple times.
-     */
-    private static final AtomicLong runCounter = new AtomicLong(0);
-
-    /**
      * Runs the provided shellcheck binary capturing its output and return code.
      *
+     * @param runId            a string label used to mark the output stdout/stderr files for the run.
      * @param shellcheckBinary the binary for shellcheck
-     * @param outdir           where the output files will be stored
      * @param args             the command line args to be passed to the shellcheck binary
      * @param scriptsToCheck   the list of arguments to shellcheck
+     * @param capturedStdout   the path where the captured stdout should be redirected
+     * @param capturedStderr   the path where the captured stderr should be redirected
      * @return a result object containing exit code and captured outputs (on file)
      * @throws IOException          if something goes bad doing io things (writing files etc...)
      * @throws InterruptedException if the thread gets interrupted while waiting for shellcheck to finish
      */
-    public static Result run(Path shellcheckBinary,
+    public static Result run(String runId,
+                             Path shellcheckBinary,
                              List<String> args,
-                             Path outdir,
-                             List<Path> scriptsToCheck) throws IOException, InterruptedException {
-
-        final String pluginOutDirAbsPath = outdir.toFile().getAbsolutePath();
+                             List<Path> scriptsToCheck,
+                             Path capturedStdout,
+                             Path capturedStderr) throws IOException, InterruptedException {
 
         // build the cmd line args "shellcheck file1.sh file2.sh ..."
         final List<String> commandAndArgs = new ArrayList<>();
         commandAndArgs.add(shellcheckBinary.toFile().getAbsolutePath()); // the shellcheck binary
         commandAndArgs.addAll(args); // the args
         commandAndArgs.addAll(scriptsToCheck.stream()
-                .map(path -> path.toFile().getAbsolutePath())
-                .collect(Collectors.toList()));
-
-        final String runId = Long.toString(runCounter.getAndIncrement());
-        final Path stdout = Paths.get(pluginOutDirAbsPath, "shellcheck." + runId + ".stdout");
-        final Path stderr = Paths.get(pluginOutDirAbsPath, "shellcheck." + runId + ".stderr");
+            .map(path -> path.toFile().getAbsolutePath())
+            .collect(Collectors.toList()));
 
         // finally launch shellcheck
         final Process process = new ProcessBuilder()
-                .redirectOutput(stdout.toFile())
-                .redirectError(stderr.toFile())
-                .command(commandAndArgs)
-                .start();
+            .redirectOutput(capturedStdout.toFile())
+            .redirectError(capturedStderr.toFile())
+            .command(commandAndArgs)
+            .start();
 
         final int exitCode = process.waitFor();
-        return new Result(runId, Collections.unmodifiableList(commandAndArgs), exitCode, stdout, stderr);
+        return new Result(runId, Collections.unmodifiableList(commandAndArgs), exitCode, capturedStdout, capturedStderr);
     }
 }

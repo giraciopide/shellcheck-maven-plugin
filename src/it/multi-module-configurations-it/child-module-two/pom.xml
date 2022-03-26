@@ -29,7 +29,6 @@
 
                 <executions>
                     <execution>
-                        <id>simple-check</id>
                         <phase>verify</phase>
                     </execution>
                 </executions>

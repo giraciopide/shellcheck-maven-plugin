@@ -9,7 +9,7 @@ def countWarnings(String pathFromPrjRoot) {
             .count()
 }
 
-assert countWarnings("target/shellcheck-plugin/shellcheck.0.stdout") == 4
-assert countWarnings("target/shellcheck-plugin/shellcheck.1.stdout") == 4
-assert countWarnings("target/shellcheck-plugin/shellcheck.2.stdout") == 4
-assert countWarnings("target/shellcheck-plugin/shellcheck.3.stdout") == 2
+assert countWarnings("target/shellcheck-plugin/shellcheck.default.0.stdout") == 4
+assert countWarnings("target/shellcheck-plugin/shellcheck.default.1.stdout") == 4
+assert countWarnings("target/shellcheck-plugin/shellcheck.default.2.stdout") == 4
+assert countWarnings("target/shellcheck-plugin/shellcheck.default.3.stdout") == 2

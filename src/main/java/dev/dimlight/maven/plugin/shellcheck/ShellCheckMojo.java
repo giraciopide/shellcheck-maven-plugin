@@ -25,6 +25,7 @@ package dev.dimlight.maven.plugin.shellcheck;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Component;
@@ -108,12 +109,39 @@ public class ShellCheckMojo extends AbstractMojo {
     private List<String> args;
 
     /**
-     * The max number of files to pass to a single shellcheck invocation, defaults to Integer.MAX_VALUE
-     * which effectively makes it unlimited (as you will arg length limit of the underlying operating system before
-     * reaching Integer.MAX_VALUE arguments.
+     * Name of the file (that will be placed in the plugin output directory) where the shellcheck stdout will be
+     * captured.
+     * It can be a simple filename or, if multiple execution/invocations of the plugin are being configured,
+     * the placeholders "@executionId@" and "@runNumber@" can be used.
+     * Defaults to "shellcheck.@executionId@.@runNumber@.stdout".
+     */
+    @Parameter(required = true, readonly = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stdout")
+    private String capturedStdoutFileName;
+
+    /**
+     * Name of the file (that will be placed in the plugin output directory) where the shellcheck stderr will be
+     * captured.
+     * It can be a simple filename or, if multiple execution/invocations of the plugin are being configured,
+     * the placeholders "@executionId@" and "@runNumber@" can be used.
+     * Defaults to "shellcheck.@executionId@.@runNumber@.stderr".
+     */
+    @Parameter(required = true, readonly = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stderr")
+    private String capturedStderrFileName;
+
+    /**
+     * Perform multiple invocations of shellcheck, each invocation checking filesPerInvocation file at the time.
+     * Defaults to false, which means that we will perform a single shellcheck invocation passing all files
+     * to be checked. Enable this if you are encountering limits on max args reached for your underlying OS.
+     */
+    @Parameter(required = false, readonly = true, defaultValue = "false")
+    private boolean splitInvocations = false;
+
+    /**
+     * The max number of files to pass to a single shellcheck invocation when splitInvocations is set to true.
+     * Defaults to Short.MAX_VALUE (32767).
      */
     @Parameter(required = false, readonly = true)
-    private int filesPerInvocation;
+    private int filesPerInvocation = Short.MAX_VALUE;
 
     /**
      * If true, the build will fail if a shellcheck invocation has a non-zero return value (meaning that it
@@ -139,55 +167,66 @@ public class ShellCheckMojo extends AbstractMojo {
     private MavenSession mavenSession;
 
     @Component
+    private MojoExecution execution; // used to get the execution id
+
+    @Component
     private BuildPluginManager pluginManager;
 
     @Override
     public void execute() throws MojoExecutionException {
-
         final Log log = getLog();
         if (skip) {
             log.info("Skipping plugin execution");
             return;
         }
 
+        log.debug("Execution id is [" + execution.getExecutionId() + "]");
         final PluginPaths pluginPaths = new PluginPaths(outputDirectory.toPath());
 
         try {
 
             final BinaryResolver binaryResolver = new BinaryResolver(mavenProject, mavenSession, pluginManager,
-                    outputDirectory.toPath(),
-                    Optional.ofNullable(externalBinaryPath).map(File::toPath),
-                    Optional.ofNullable(releaseArchiveUrls).orElseGet(Collections::emptyMap),
-                    log);
+                outputDirectory.toPath(),
+                Optional.ofNullable(externalBinaryPath).map(File::toPath),
+                Optional.ofNullable(releaseArchiveUrls).orElseGet(Collections::emptyMap),
+                log);
 
             final Path binary = binaryResolver.resolve(binaryResolutionMethod);
 
-            // perform the runs in chunk (by default runs just once per execution on all files included)
+            // perform the runs in chunks or a single chunk with everything in it, depending on the splitInvocationConfiguration
             final List<Shellcheck.Result> runs = new ArrayList<>();
-            final Iterator<List<Path>> runIter = ChunkIterator.over(filesPerInvocation(), searchFilesToBeChecked());
+            final List<Path> allFilesCheck = searchFilesToBeChecked();
+            final Iterator<List<Path>> runIter = splitInvocations ? ChunkIterator.over(filesPerInvocation(), allFilesCheck) : Collections.singletonList(allFilesCheck).iterator();
+            int runNum = 0;
             while (runIter.hasNext()) {
                 final List<Path> scriptsToCheck = runIter.next();
-
+                final String runId = execution.getExecutionId() + "." + runNum;
                 final long startTime = System.currentTimeMillis();
-                log.debug("Going to run shellcheck on [" + scriptsToCheck.size() + "] files");
-                final Shellcheck.Result result = Shellcheck.run(binary,
-                        Optional.ofNullable(args).orElseGet(Collections::emptyList),
-                        pluginPaths.getPluginOutputDirectory(), scriptsToCheck);
 
+                log.debug("Running shellcheck [" + runId + "] on [" + scriptsToCheck.size() + "] files");
+                final Shellcheck.Result result = Shellcheck.run(
+                    runId,
+                    binary,
+                    Optional.ofNullable(args).orElseGet(Collections::emptyList),
+                    scriptsToCheck,
+                    pluginPaths.getPathInPluginOutputDirectory(renderTemplatedFilename(capturedStdoutFileName, execution, runNum)),
+                    pluginPaths.getPathInPluginOutputDirectory(renderTemplatedFilename(capturedStderrFileName, execution, runNum))
+                );
                 final long elapsed = System.currentTimeMillis() - startTime;
+                log.debug("Shellcheck run [" + result.runId + "] on [" + scriptsToCheck.size() + "] files took [" + elapsed + "] millis");
 
-                log.debug("Ran shellcheck on [" + scriptsToCheck.size() + "] files took [" + elapsed + "] millis");
                 runs.add(result);
+                ++runNum;
             }
 
             // inspect the failures and fail the build if configured to do so.,
             final List<Shellcheck.Result> failures = runs.stream().filter(Shellcheck.Result::isNotOk).collect(Collectors.toList());
             if (!failures.isEmpty()) {
-
-                for (Shellcheck.Result failRun : failures) {
-                    log.warn("------ Shellcheck run [" + failRun.runId + "] returned [" + failRun.exitCode + "] stdout and stderr will follow -----------------------------------------");
-                    Files.readAllLines(failRun.stdout).forEach(log::warn);
-                    Files.readAllLines(failRun.stderr).forEach(log::error);
+                for (Shellcheck.Result failedRun : failures) {
+                    log.warn("------ Shellcheck run [" + failedRun.runId + "] returned [" + failedRun.exitCode + "] stdout will follow -----------------------------------------");
+                    Files.readAllLines(failedRun.stdout).forEach(log::warn);
+                    log.warn("------ Shellcheck run [" + failedRun.runId + "] returned [" + failedRun.exitCode + "] stderr will follow -----------------------------------------");
+                    Files.readAllLines(failedRun.stderr).forEach(log::error);
                 }
 
                 if (failBuildIfWarnings) {
@@ -233,16 +272,23 @@ public class ShellCheckMojo extends AbstractMojo {
         final List<Path> filesToCheck = new ArrayList<>();
 
         final List<SourceDir> sourceDirs = Optional.ofNullable(this.sourceDirs)
-                .orElse(Collections.singletonList(defaultSourceDir()));
+            .orElse(Collections.singletonList(defaultSourceDir()));
 
         for (SourceDir sourceDir : sourceDirs) {
             final List<Path> includedFiles = Arrays.stream(fileSetManager.getIncludedFiles(sourceDir))
-                    .map(includedFile -> Paths.get(sourceDir.getDirectory(), includedFile))
-                    .peek(includedPath -> log.debug("Shellcheck will check file: [" + includedPath.toFile().getAbsolutePath() + "]"))
-                    .collect(Collectors.toList());
+                .map(includedFile -> Paths.get(sourceDir.getDirectory(), includedFile))
+                .peek(includedPath -> log.debug("Shellcheck will check file: [" + includedPath.toFile().getAbsolutePath() + "]"))
+                .collect(Collectors.toList());
             filesToCheck.addAll(includedFiles);
         }
 
         return filesToCheck;
+    }
+
+    private String renderTemplatedFilename(String fileName, MojoExecution execution, int runNumber) {
+        // "shellcheck.@executionId@.@runNumber@.stdout")
+        return fileName
+            .replace("@executionId@", execution.getExecutionId())
+            .replace("@runNumber@", Integer.toString(runNumber));
     }
 }

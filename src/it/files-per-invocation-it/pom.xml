@@ -25,7 +25,6 @@
                 <version>@project.version@</version>
                 <executions>
                     <execution>
-                        <id>simple-check</id>
                         <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
@@ -41,6 +40,7 @@
                                 </sourceDir>
                             </sourceDirs>
                             <binaryResolutionMethod>embedded</binaryResolutionMethod>
+                            <splitInvocations>true</splitInvocations>
                             <filesPerInvocation>2</filesPerInvocation>
                         </configuration>
                     </execution>
