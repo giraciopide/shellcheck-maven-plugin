@@ -186,7 +186,7 @@ re-stated in the configuration for transparency and documentation purposes.
 </build>
 ```
 
-More exampels examples are available in the `it` (integration tests) directory in the source tree.
+More examples are available in the `it` (integration tests) directory in the source tree.
 
 ## How to build
 
