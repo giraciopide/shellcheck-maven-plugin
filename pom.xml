@@ -79,6 +79,8 @@
         <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
         <version.license-maven-plugin>2.0.0</version.license-maven-plugin>
         <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
+        <version.maven-checkstyle-plugin>3.1.2</version.maven-checkstyle-plugin>
+        <version.checkstyle>10.1</version.checkstyle>
     </properties>
 
     <dependencies>
@@ -304,6 +306,38 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${version.maven-checkstyle-plugin}</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${version.checkstyle}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>check-java</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <configLocation>${project.basedir}/src/main/checkstyle/checkstyle-configuration.xml
+                            </configLocation>
+                            <!-- only check handwritten code -->
+                            <sourceDirectories>
+                                <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                                <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
+                            </sourceDirectories>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
