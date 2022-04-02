@@ -44,6 +44,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -166,9 +167,11 @@ public class ShellCheckMojo extends AbstractMojo {
     @Parameter(required = true, defaultValue = "${session}", readonly = true)
     private MavenSession mavenSession;
 
+    // needed to get the execution id (used to discriminate the captured output of multiple runs)
     @Parameter(defaultValue = "${mojoExecution}", readonly = true)
-    private MojoExecution execution; // used to get the execution id
+    private MojoExecution execution;
 
+    // used by the mojo plugin executor that we use to invoke the maven-download-plugin:wget goal.
     @Component
     private BuildPluginManager pluginManager;
 
@@ -264,8 +267,7 @@ public class ShellCheckMojo extends AbstractMojo {
      *
      * @return the list of files to be checked by shellcheck.
      */
-    private List<Path> searchFilesToBeChecked() throws MojoExecutionException {
-
+    private List<Path> searchFilesToBeChecked() {
         final Log log = getLog();
         final FileSetManager fileSetManager = new FileSetManager(log, true);
 
@@ -281,6 +283,10 @@ public class ShellCheckMojo extends AbstractMojo {
                 .collect(Collectors.toList());
             filesToCheck.addAll(includedFiles);
         }
+        
+        // (It may be that FileSetManager manager returns consistent results on each os/filesystem, but I'm not sure
+        // so let's be on the safe side and sort them manually by some arbitrary criterion).
+        filesToCheck.sort(Comparator.comparing(path -> path.toAbsolutePath().toString()));
 
         return filesToCheck;
     }
