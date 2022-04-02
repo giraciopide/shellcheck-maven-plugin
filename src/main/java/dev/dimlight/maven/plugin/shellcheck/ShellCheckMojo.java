@@ -283,9 +283,10 @@ public class ShellCheckMojo extends AbstractMojo {
                 .collect(Collectors.toList());
             filesToCheck.addAll(includedFiles);
         }
-        
-        // (It may be that FileSetManager manager returns consistent results on each os/filesystem, but I'm not sure
-        // so let's be on the safe side and sort them manually by some arbitrary criterion).
+
+        // it may be that FileSetManager manager returns consistent results on each os/filesystem, but I'm not sure
+        // so let's be on the safe side and sort them manually by some arbitrary (invariant) criterion.
+        // We sort by absolute path, so that files in the same directory "tend to stay next to each other".
         filesToCheck.sort(Comparator.comparing(path -> path.toAbsolutePath().toString()));
 
         return filesToCheck;
