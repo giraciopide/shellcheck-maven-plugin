@@ -80,7 +80,7 @@
         <version.license-maven-plugin>2.0.0</version.license-maven-plugin>
         <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
         <version.maven-checkstyle-plugin>3.1.2</version.maven-checkstyle-plugin>
-        <version.checkstyle>10.1</version.checkstyle>
+        <version.checkstyle>9.3</version.checkstyle>
     </properties>
 
     <dependencies>
