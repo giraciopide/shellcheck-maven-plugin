@@ -37,7 +37,7 @@ public class Shellcheck {
     /**
      * The version of shellcheck that is embedded in the plugin jar.
      */
-    public static final String VERSION = "0.8.0";
+    public static final String VERSION = "0.9.0";
 
     private Shellcheck() {
     }
