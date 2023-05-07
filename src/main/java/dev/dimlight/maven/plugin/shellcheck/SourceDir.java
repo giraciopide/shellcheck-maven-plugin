@@ -4,7 +4,7 @@ package dev.dimlight.maven.plugin.shellcheck;
  * #%L
  * dev.dimlight:shellcheck-maven-plugin
  * %%
- * Copyright (C) 2020 - 2021 Marco Nicolini
+ * Copyright (C) 2020 - 2023 Marco Nicolini
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
