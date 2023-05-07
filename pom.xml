@@ -5,7 +5,7 @@
 
     <groupId>dev.dimlight</groupId>
     <artifactId>shellcheck-maven-plugin</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
