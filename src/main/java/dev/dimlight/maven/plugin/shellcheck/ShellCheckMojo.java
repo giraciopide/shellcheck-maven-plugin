@@ -60,25 +60,25 @@ public class ShellCheckMojo extends AbstractMojo {
     /**
      * Skips the plugin execution if set to true.
      */
-    @Parameter(property = "skip.shellcheck", required = true, defaultValue = "false", readonly = true)
+    @Parameter(property = "skip.shellcheck", required = true, defaultValue = "false")
     private boolean skip;
 
     /**
      * A list of directory or FileSets where to look for sh files to check.
      */
-    @Parameter(required = false, readonly = true)
+    @Parameter(required = false)
     private List<SourceDir> sourceDirs;
 
     /**
      * The expected extension to filter shell files (e.g. ".sh").
      */
-    @Parameter(required = true, defaultValue = ".sh", readonly = true)
+    @Parameter(required = true, defaultValue = ".sh")
     private String shellFileExtension;
 
     /**
      * The way the plugin should attempt binary resolution
      */
-    @Parameter(required = true, readonly = true, defaultValue = "download")
+    @Parameter(required = true, defaultValue = "download")
     private BinaryResolutionMethod binaryResolutionMethod;
 
     /**
@@ -86,7 +86,7 @@ public class ShellCheckMojo extends AbstractMojo {
      *
      * @see BinaryResolutionMethod
      */
-    @Parameter(required = false, readonly = true)
+    @Parameter(required = false)
     private File externalBinaryPath;
 
     /**
@@ -95,7 +95,7 @@ public class ShellCheckMojo extends AbstractMojo {
      *
      * @see BinaryResolutionMethod
      */
-    @Parameter(required = false, readonly = true)
+    @Parameter(required = false)
     private Map<String, URL> releaseArchiveUrls;
 
     /**
@@ -106,7 +106,7 @@ public class ShellCheckMojo extends AbstractMojo {
      * whitespace since whitespace might be quoted).
      * The inconvenience is rather small, since configuration is written and rarely changed.
      */
-    @Parameter(required = false, readonly = true, defaultValue = "")
+    @Parameter(required = false, defaultValue = "")
     private List<String> args;
 
     /**
@@ -116,7 +116,7 @@ public class ShellCheckMojo extends AbstractMojo {
      * the placeholders "@executionId@" and "@runNumber@" can be used.
      * Defaults to "shellcheck.@executionId@.@runNumber@.stdout".
      */
-    @Parameter(required = true, readonly = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stdout")
+    @Parameter(required = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stdout")
     private String capturedStdoutFileName;
 
     /**
@@ -126,7 +126,7 @@ public class ShellCheckMojo extends AbstractMojo {
      * the placeholders "@executionId@" and "@runNumber@" can be used.
      * Defaults to "shellcheck.@executionId@.@runNumber@.stderr".
      */
-    @Parameter(required = true, readonly = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stderr")
+    @Parameter(required = true, defaultValue = "shellcheck.@executionId@.@runNumber@.stderr")
     private String capturedStderrFileName;
 
     /**
@@ -134,14 +134,14 @@ public class ShellCheckMojo extends AbstractMojo {
      * Defaults to false, which means that we will perform a single shellcheck invocation passing all files
      * to be checked. Enable this if you are encountering limits on max args reached for your underlying OS.
      */
-    @Parameter(required = false, readonly = true, defaultValue = "false")
+    @Parameter(required = false, defaultValue = "false")
     private boolean splitInvocations = false;
 
     /**
      * The max number of files to pass to a single shellcheck invocation when splitInvocations is set to true.
      * Defaults to Short.MAX_VALUE (32767).
      */
-    @Parameter(required = false, readonly = true)
+    @Parameter(required = false)
     private int filesPerInvocation = Short.MAX_VALUE;
 
     /**
